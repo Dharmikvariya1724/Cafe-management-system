@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from 'react'
 import type { MenuItem } from '@/lib/types'
 import { menuItems as defaultItems } from '@/lib/data'
 import { Trash2, Edit2, Plus, X, Upload, AlertCircle } from 'lucide-react'
+import { api } from '@/lib/api-client'
 
 export default function AdminMenuPage() {
   const [items, setItems] = useState<MenuItem[]>([])
@@ -11,6 +12,7 @@ export default function AdminMenuPage() {
   const [editingItem, setEditingItem] = useState<MenuItem | null>(null)
   const [currentPage, setCurrentPage] = useState(1)
   const [imagePreview, setImagePreview] = useState<string | null>(null)
+  const [loading, setLoading] = useState(true)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const itemsPerPage = 6
 
@@ -24,18 +26,26 @@ export default function AdminMenuPage() {
     available: true,
   })
 
-  useEffect(() => {
-    const stored = localStorage.getItem('coffee_menu_items')
-    if (stored) {
-      try {
-        setItems(JSON.parse(stored))
-      } catch {
-        setItems(defaultItems)
-      }
+  const loadMenuItems = async () => {
+    setLoading(true)
+    const data = await api.getMenuItems()
+    if (data && Array.isArray(data) && data.length > 0) {
+      setItems(data)
+      localStorage.setItem('coffee_menu_items', JSON.stringify(data))
     } else {
-      setItems(defaultItems)
-      localStorage.setItem('coffee_menu_items', JSON.stringify(defaultItems))
+      const stored = localStorage.getItem('coffee_menu_items')
+      if (stored) {
+        try { setItems(JSON.parse(stored)) } catch { setItems(defaultItems) }
+      } else {
+        setItems(defaultItems)
+        localStorage.setItem('coffee_menu_items', JSON.stringify(defaultItems))
+      }
     }
+    setLoading(false)
+  }
+
+  useEffect(() => {
+    loadMenuItems()
   }, [])
 
   const saveToStorage = (updatedItems: MenuItem[]) => {
@@ -86,15 +96,16 @@ export default function AdminMenuPage() {
     }
   }
 
-  const handleDelete = (id: string) => {
-    if (confirm('Are you sure you want to delete this item?')) {
+  const handleDelete = async (id: string) => {
+    if (confirm('Are you sure you want to delete this menu item?')) {
+      await api.deleteMenuItem(id)
       const updated = items.filter(item => item.id !== id)
       saveToStorage(updated)
       setCurrentPage(1)
     }
   }
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
 
     if (!formData.name || !formData.price || !formData.description) {
@@ -102,38 +113,44 @@ export default function AdminMenuPage() {
       return
     }
 
+    const payload = {
+      name: formData.name,
+      category: formData.category as MenuItem['category'],
+      price: parseFloat(formData.price),
+      description: formData.description,
+      image: formData.image || '/images/cappuccino.png',
+      popular: formData.popular,
+      available: formData.available,
+    }
+
     if (editingItem) {
+      await api.updateMenuItem(editingItem.id, payload)
       const updated = items.map(item =>
-        item.id === editingItem.id
-          ? {
-              ...item,
-              name: formData.name,
-              category: formData.category as MenuItem['category'],
-              price: parseFloat(formData.price),
-              description: formData.description,
-              image: formData.image || item.image,
-              popular: formData.popular,
-              available: formData.available,
-            }
-          : item
+        item.id === editingItem.id ? { ...item, ...payload } : item
       )
       saveToStorage(updated)
     } else {
       const newItem: MenuItem = {
-        id: Date.now().toString(),
-        name: formData.name,
-        category: formData.category as MenuItem['category'],
-        price: parseFloat(formData.price),
-        description: formData.description,
-        image: formData.image || '/images/placeholder.png',
-        available: formData.available,
-        popular: formData.popular,
+        id: `item_${Date.now()}`,
+        ...payload,
       }
-      saveToStorage([...items, newItem])
+      await api.createMenuItem(newItem)
+      saveToStorage([newItem, ...items])
     }
 
     setIsModalOpen(false)
-    setCurrentPage(1)
+  }
+
+  const handleToggleAvailability = async (id: string) => {
+    const target = items.find(i => i.id === id)
+    if (!target) return
+    const updatedStatus = !target.available
+    await api.updateMenuItem(id, { available: updatedStatus })
+
+    const updated = items.map(item =>
+      item.id === id ? { ...item, available: updatedStatus } : item
+    )
+    saveToStorage(updated)
   }
 
   // Pagination
@@ -195,7 +212,7 @@ export default function AdminMenuPage() {
                   <h3 className="font-heading font-bold text-foreground">{item.name}</h3>
                   <p className="text-xs text-foreground/60 capitalize">{item.category}</p>
                 </div>
-                <span className="text-xl font-bold text-accent">${item.price.toFixed(2)}</span>
+                <span className="text-xl font-bold text-accent">₹{item.price.toFixed(2)}</span>
               </div>
 
               <p className="text-foreground/80 text-sm line-clamp-2 mb-3">{item.description}</p>

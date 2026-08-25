@@ -4,6 +4,9 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
+    "server": "cd server && npm run dev",
+    "server:start": "cd server && npm start",
+    "seed:db": "cd server && npm run seed",
     "build": "next build",
     "start": "next start",
     "lint": "eslint ."

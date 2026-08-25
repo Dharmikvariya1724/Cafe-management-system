@@ -1,7 +1,7 @@
 import Link from 'next/link'
 import Image from 'next/image'
 import { BUSINESS_NAME, BUSINESS_TAGLINE, CONTACT_INFO, BUSINESS_HOURS, SOCIAL_LINKS, OUTLETS } from '@/lib/constants'
-import { Mail, Phone, MapPin, ExternalLink, Gift } from 'lucide-react'
+import { Mail, Phone, MapPin, ExternalLink, Gift, ShieldCheck } from 'lucide-react'
 
 export function Footer() {
   const today = new Date().getDay()
@@ -10,9 +10,9 @@ export function Footer() {
   return (
     <footer className="bg-primary text-primary-foreground">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-8">
           {/* Brand */}
-          <div className="space-y-3">
+          <div className="space-y-3 sm:col-span-2 lg:col-span-1">
             <div className="flex items-center gap-3">
               <div className="relative w-10 h-10 bg-white rounded-lg p-1 shrink-0 overflow-hidden">
                 <Image
@@ -62,7 +62,7 @@ export function Footer() {
 
           {/* Surat Outlets */}
           <div>
-            <h4 className="font-semibold mb-4 text-sm uppercase tracking-wider text-accent">Our Surat Outlets</h4>
+            <h4 className="font-semibold mb-4 text-sm uppercase tracking-wider text-accent">Surat Outlets</h4>
             <ul className="space-y-2 text-xs">
               {OUTLETS.map(outlet => (
                 <li key={outlet.id} className="leading-tight">
@@ -75,10 +75,32 @@ export function Footer() {
             </ul>
           </div>
 
+          {/* Legal Policies */}
+          <div>
+            <h4 className="font-semibold mb-4 text-sm uppercase tracking-wider text-accent flex items-center gap-1">
+              <ShieldCheck className="w-4 h-4" />
+              Legal & Policies
+            </h4>
+            <ul className="space-y-2 text-sm">
+              <li>
+                <Link href="/hygiene" className="hover:underline">Our Hygiene</Link>
+              </li>
+              <li>
+                <Link href="/privacy-policy" className="hover:underline">Privacy Policy</Link>
+              </li>
+              <li>
+                <Link href="/shipping-policy" className="hover:underline">Shipping Policy</Link>
+              </li>
+              <li>
+                <Link href="/cancellation-refund" className="hover:underline">Cancellation & Refund</Link>
+              </li>
+            </ul>
+          </div>
+
           {/* Connect & Hours */}
           <div>
             <h4 className="font-semibold mb-4 text-sm uppercase tracking-wider text-accent">Hours & Reach Us</h4>
-            <div className="space-y-2 text-xs mb-4 text-primary-foreground/90">
+            {/* <div className="space-y-2 text-xs mb-4 text-primary-foreground/90">
               <p className="font-semibold">Today ({todayHours.day}):</p>
               <p className="text-accent font-bold">
                 {todayHours.closed ? 'Closed' : `${todayHours.open} - ${todayHours.close}`}
@@ -89,7 +111,7 @@ export function Footer() {
                   {CONTACT_INFO.email}
                 </a>
               </p>
-            </div>
+            </div> */}
             <div className="pt-3">
               <p className="text-xs font-semibold mb-2.5 text-accent uppercase tracking-wider">Follow Us</p>
               <div className="flex items-center gap-2.5 flex-wrap">
@@ -115,6 +137,7 @@ export function Footer() {
 
         <div className="border-t border-primary-foreground/20 mt-8 pt-8 text-center text-xs text-primary-foreground/70 flex flex-col sm:flex-row items-center justify-between gap-2">
           <p>&copy; {new Date().getFullYear()} Mahi Enterprise — Coffee King | Super Sandwich Co. All rights reserved.</p>
+          
           <p>Surat, Gujarat, India</p>
         </div>
       </div>
@@ -152,15 +175,15 @@ const socialIconsData = [
       </svg>
     )
   },
-  {
-    name: 'LinkedIn',
-    url: SOCIAL_LINKS.linkedin,
-    icon: (
-      <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24">
-        <path d="M19 3a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h14m-.5 15.5v-5.3a3.26 3.26 0 0 0-3.26-3.26c-.85 0-1.84.52-2.28 1.3v-1.11h-2.79v8.37h2.79v-4.93c0-.77.62-1.4 1.39-1.4a1.4 1.4 0 0 1 1.4 1.4v4.93h2.75M6.88 8.56a1.68 1.68 0 0 0 1.68-1.68c0-.93-.75-1.69-1.68-1.69a1.69 1.69 0 0 0-1.69 1.69c0 .93.76 1.68 1.69 1.68m1.39 9.94v-8.37H5.5v8.37h2.77z" />
-      </svg>
-    )
-  },
+  // {
+  //   name: 'LinkedIn',
+  //   url: SOCIAL_LINKS.linkedin,
+  //   icon: (
+  //     <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24">
+  //       <path d="M19 3a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h14m-.5 15.5v-5.3a3.26 3.26 0 0 0-3.26-3.26c-.85 0-1.84.52-2.28 1.3v-1.11h-2.79v8.37h2.79v-4.93c0-.77.62-1.4 1.39-1.4a1.4 1.4 0 0 1 1.4 1.4v4.93h2.75M6.88 8.56a1.68 1.68 0 0 0 1.68-1.68c0-.93-.75-1.69-1.69-1.69a1.69 1.69 0 0 0-1.69 1.69c0 .93.76 1.68 1.69 1.68m1.39 9.94v-8.37H5.5v8.37h2.77z" />
+  //     </svg>
+  //   )
+  // },
   {
     name: 'YouTube',
     url: SOCIAL_LINKS.youtube,
@@ -171,4 +194,3 @@ const socialIconsData = [
     )
   }
 ]
-

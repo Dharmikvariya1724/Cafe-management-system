@@ -5,6 +5,8 @@ import type { GalleryImage } from '@/lib/types'
 import { galleryImages as defaultGalleryImages } from '@/lib/data'
 import { Trash2, Edit2, Plus, X, Upload } from 'lucide-react'
 
+import { api } from '@/lib/api-client'
+
 export default function AdminGalleryPage() {
   const [images, setImages] = useState<GalleryImage[]>([])
   const [isModalOpen, setIsModalOpen] = useState(false)
@@ -21,18 +23,24 @@ export default function AdminGalleryPage() {
     src: '',
   })
 
-  useEffect(() => {
-    const stored = localStorage.getItem('coffee_gallery_images')
-    if (stored) {
-      try {
-        setImages(JSON.parse(stored))
-      } catch {
-        setImages(defaultGalleryImages)
-      }
+  const loadGalleryImages = async () => {
+    const data = await api.getGallery()
+    if (data && Array.isArray(data) && data.length > 0) {
+      setImages(data)
+      localStorage.setItem('coffee_gallery_images', JSON.stringify(data))
     } else {
-      setImages(defaultGalleryImages)
-      localStorage.setItem('coffee_gallery_images', JSON.stringify(defaultGalleryImages))
+      const stored = localStorage.getItem('coffee_gallery_images')
+      if (stored) {
+        try { setImages(JSON.parse(stored)) } catch { setImages(defaultGalleryImages) }
+      } else {
+        setImages(defaultGalleryImages)
+        localStorage.setItem('coffee_gallery_images', JSON.stringify(defaultGalleryImages))
+      }
     }
+  }
+
+  useEffect(() => {
+    loadGalleryImages()
   }, [])
 
   const saveToStorage = (updatedImages: GalleryImage[]) => {
@@ -77,15 +85,16 @@ export default function AdminGalleryPage() {
     }
   }
 
-  const handleDelete = (id: string) => {
+  const handleDelete = async (id: string) => {
     if (confirm('Are you sure you want to delete this image?')) {
+      await api.deleteGalleryImage(id)
       const updated = images.filter(img => img.id !== id)
       saveToStorage(updated)
       setCurrentPage(1)
     }
   }
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
 
     if (!formData.title || !formData.alt || !formData.src) {
@@ -93,28 +102,26 @@ export default function AdminGalleryPage() {
       return
     }
 
+    const payload = {
+      title: formData.title,
+      category: formData.category as GalleryImage['category'],
+      alt: formData.alt,
+      src: formData.src,
+    }
+
     if (editingImage) {
+      await api.updateGalleryImage(editingImage.id, payload)
       const updated = images.map(img =>
-        img.id === editingImage.id
-          ? {
-              ...img,
-              title: formData.title,
-              category: formData.category as GalleryImage['category'],
-              alt: formData.alt,
-              src: formData.src,
-            }
-          : img
+        img.id === editingImage.id ? { ...img, ...payload } : img
       )
       saveToStorage(updated)
     } else {
       const newImage: GalleryImage = {
-        id: Date.now().toString(),
-        title: formData.title,
-        category: formData.category as GalleryImage['category'],
-        alt: formData.alt,
-        src: formData.src,
+        id: `img_${Date.now()}`,
+        ...payload,
       }
-      saveToStorage([...images, newImage])
+      await api.createGalleryImage(newImage)
+      saveToStorage([newImage, ...images])
     }
 
     setIsModalOpen(false)

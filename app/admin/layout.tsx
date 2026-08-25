@@ -3,23 +3,27 @@
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { Menu, X, LogOut, LayoutDashboard, CalendarDays, Utensils, Images, MessageSquare, Star, ShoppingBag, QrCode } from 'lucide-react'
+import { Menu, X, LogOut, LayoutDashboard, CalendarDays, Utensils, Images, MessageSquare, Star, ShoppingBag, QrCode, FileText, User } from 'lucide-react'
 import { BUSINESS_NAME } from '@/lib/constants'
 
 const adminLinks = [
   { href: '/admin', label: 'Dashboard', icon: LayoutDashboard },
   { href: '/admin/orders', label: 'Orders', icon: ShoppingBag },
+  { href: '/admin/invoices', label: 'Invoices & Reports', icon: FileText },
   { href: '/admin/tables', label: 'Tables & QR', icon: QrCode },
   { href: '/admin/reservations', label: 'Reservations', icon: CalendarDays },
   { href: '/admin/menu', label: 'Menu Items', icon: Utensils },
   { href: '/admin/gallery', label: 'Gallery', icon: Images },
   { href: '/admin/reviews', label: 'Reviews', icon: Star },
   { href: '/admin/messages', label: 'Messages', icon: MessageSquare },
+  { href: '/admin/profile', label: 'Admin Profile', icon: User },
 ]
 
 
 
 import Image from 'next/image'
+
+import { api } from '@/lib/api-client'
 
 export default function AdminLayout({
   children,
@@ -33,32 +37,47 @@ export default function AdminLayout({
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
+  const [isSubmitting, setIsSubmitting] = useState(false)
 
   useEffect(() => {
-    const loggedIn = localStorage.getItem('admin-logged-in')
-    if (loggedIn) {
-      setIsLoggedIn(true)
+    const checkAuth = async () => {
+      const loggedIn = localStorage.getItem('admin-logged-in')
+      if (loggedIn) {
+        setIsLoggedIn(true)
+      }
+      setIsLoading(false)
     }
-    setIsLoading(false)
+    checkAuth()
   }, [])
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
     setError('')
+    setIsSubmitting(true)
 
-    // Admin credentials: username: "admin", password: "admin123"
-    if (username === 'admin' && password === 'admin123') {
-      localStorage.setItem('admin-logged-in', 'true')
+    try {
+      // Try DB Authentication API
+      await api.loginAdmin(username, password)
       setIsLoggedIn(true)
       setUsername('')
       setPassword('')
-    } else {
-      setError('Invalid username or password')
+    } catch (err: any) {
+      // Fallback for offline demo mode
+      if (username === 'admin' && password === 'admin123') {
+        localStorage.setItem('admin-logged-in', 'true')
+        setIsLoggedIn(true)
+        setUsername('')
+        setPassword('')
+      } else {
+        setError(err.message || 'Invalid username or password')
+      }
+    } finally {
+      setIsSubmitting(false)
     }
   }
 
   const handleLogout = () => {
-    localStorage.removeItem('admin-logged-in')
+    api.logoutAdmin()
     setIsLoggedIn(false)
     router.push('/')
   }
@@ -195,40 +214,56 @@ export default function AdminLayout({
       </aside>
 
       {/* Mobile Header */}
-      <div className="md:hidden fixed top-0 left-0 right-0 bg-primary text-primary-foreground z-40 border-b border-primary/20">
-        <div className="flex items-center justify-between p-4">
-          <span className="font-heading font-bold">Admin</span>
+      <div className="md:hidden fixed top-0 left-0 right-0 bg-primary text-primary-foreground z-40 border-b border-primary/20 shadow-md">
+        <div className="flex items-center justify-between p-3.5">
+          <Link href="/admin" className="flex items-center gap-2.5">
+            <div className="relative w-8 h-8 bg-white rounded-lg p-0.5 shrink-0">
+              <Image
+                src="/images/logo.png"
+                alt="Coffee King Logo"
+                fill
+                className="object-contain"
+              />
+            </div>
+            <div>
+              <span className="font-heading font-extrabold text-base block leading-none">Coffee King</span>
+              <span className="text-[9px] text-accent font-bold uppercase tracking-wider block mt-0.5">Admin Portal</span>
+            </div>
+          </Link>
+
           <button
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-            className="p-2 hover:bg-white/10 rounded"
+            className="p-2 hover:bg-white/10 rounded-lg transition-colors"
           >
-            {isMobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+            {isMobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
           </button>
         </div>
 
         {isMobileMenuOpen && (
-          <nav className="px-4 py-2 space-y-1 border-t border-primary/20">
+          <nav className="px-3 py-3 space-y-1 border-t border-white/10 bg-primary/95 backdrop-blur-md max-h-[80vh] overflow-y-auto animate-in slide-in-from-top-2 duration-200">
             {adminLinks.map(link => {
               const Icon = link.icon
               return (
                 <Link
                   key={link.href}
                   href={link.href}
-                  className="flex items-center gap-3 px-4 py-2 rounded-lg hover:bg-white/10 transition-colors text-sm"
+                  className="flex items-center gap-3 px-3.5 py-2.5 rounded-xl hover:bg-white/10 transition-colors text-xs font-semibold"
                   onClick={() => setIsMobileMenuOpen(false)}
                 >
-                  <Icon className="w-4 h-4" />
+                  <Icon className="w-4 h-4 text-accent" />
                   <span>{link.label}</span>
                 </Link>
               )
             })}
-            <button
-              onClick={handleLogout}
-              className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-white/10 rounded-lg hover:bg-white/20 transition-colors font-medium text-sm mt-2"
-            >
-              <LogOut className="w-4 h-4" />
-              Logout
-            </button>
+            <div className="pt-2">
+              <button
+                onClick={handleLogout}
+                className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-white/10 rounded-xl hover:bg-white/20 transition-colors font-bold text-xs"
+              >
+                <LogOut className="w-4 h-4" />
+                Logout
+              </button>
+            </div>
           </nav>
         )}
       </div>

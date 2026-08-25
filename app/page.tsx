@@ -4,8 +4,8 @@ import { Hero } from '@/components/Hero'
 import { MenuCard } from '@/components/MenuCard'
 import { OutletsSection } from '@/components/OutletsSection'
 import { CkVibeGallery } from '@/components/CkVibeGallery'
-import { TestimonialCard } from '@/components/TestimonialCard'
-import { menuItems, reviews } from '@/lib/data'
+import { HomeTestimonials } from '@/components/HomeTestimonials'
+import { menuItems } from '@/lib/data'
 import { BUSINESS_NAME, KINGCOINS_REWARDS } from '@/lib/constants'
 import Link from 'next/link'
 import { ArrowRight, Gift, MapPin, Store, Utensils, Star } from 'lucide-react'
@@ -94,30 +94,8 @@ export default function Home() {
         </div>
       </section>
 
-      {/* 5. What Our Guests Say / Testimonials */}
-      <section className="py-20 bg-background border-b border-border">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-12 space-y-2">
-            <div className="flex justify-center text-amber-500 gap-1 mb-2">
-              {[...Array(5)].map((_, i) => (
-                <Star key={i} className="w-5 h-5 fill-current" />
-              ))}
-            </div>
-            <h2 className="text-4xl font-heading font-extrabold text-foreground">
-              What Our Guests Say
-            </h2>
-            <p className="text-foreground/70 text-sm sm:text-base">
-              Join thousands of happy coffee lovers across Surat
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {reviews.slice(0, 3).map(review => (
-              <TestimonialCard key={review.id} review={review} />
-            ))}
-          </div>
-        </div>
-      </section>
+      {/* 5. What Our Guests Say / Testimonials (Dynamic Admin Verified Only) */}
+      <HomeTestimonials />
 
       {/* 6. Visit Us Today Call to Action Banner matching user screenshot */}
       <section className="py-16 bg-[#c9a876] text-white">

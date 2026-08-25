@@ -34,6 +34,18 @@ export interface Review {
   text: string
   date: string
   verified: boolean
+  orderId?: string
+  orderNumber?: string
+}
+
+export interface AdminProfile {
+  id?: string
+  username: string
+  name: string
+  email: string
+  phone: string
+  avatar: string
+  role?: string
 }
 
 export interface GalleryImage {

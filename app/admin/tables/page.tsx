@@ -25,6 +25,8 @@ import {
   AlertCircle,
 } from 'lucide-react'
 
+import { api } from '@/lib/api-client'
+
 export default function AdminTablesPage() {
   const [tables, setTables] = useState<Table[]>([])
   const [searchQuery, setSearchQuery] = useState('')
@@ -46,9 +48,14 @@ export default function AdminTablesPage() {
   const [editingTableId, setEditingTableId] = useState<string | null>(null)
   const [formError, setFormError] = useState('')
 
-  const loadTables = () => {
-    const data = getStoredTables()
-    setTables(data)
+  const loadTables = async () => {
+    const data = await api.getTables()
+    if (data && Array.isArray(data) && data.length > 0) {
+      setTables(data)
+      saveTables(data)
+    } else {
+      setTables(getStoredTables())
+    }
   }
 
   useEffect(() => {
@@ -86,7 +93,7 @@ export default function AdminTablesPage() {
     setIsCreateOpen(true)
   }
 
-  const handleCreateSubmit = (e: React.FormEvent) => {
+  const handleCreateSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setFormError('')
 
@@ -96,7 +103,6 @@ export default function AdminTablesPage() {
       return
     }
 
-    // Check duplicate table number
     const exists = tables.some(
       (t) => t.tableNumber.toLowerCase() === numClean.toLowerCase()
     )
@@ -116,11 +122,10 @@ export default function AdminTablesPage() {
       updatedAt: now,
     }
 
+    await api.createTable(newTable)
     const updated = [newTable, ...tables]
     saveTables(updated)
     setIsCreateOpen(false)
-
-    // Open QR view for the newly created table
     setQrModalTable(newTable)
   }
 
@@ -133,7 +138,7 @@ export default function AdminTablesPage() {
     setIsEditOpen(true)
   }
 
-  const handleEditSubmit = (e: React.FormEvent) => {
+  const handleEditSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setFormError('')
 
@@ -144,7 +149,6 @@ export default function AdminTablesPage() {
       return
     }
 
-    // Check duplicate table number excluding current
     const exists = tables.some(
       (t) => t.id !== editingTableId && t.tableNumber.toLowerCase() === numClean.toLowerCase()
     )
@@ -154,16 +158,16 @@ export default function AdminTablesPage() {
     }
 
     const now = new Date().toISOString()
+    const payload = {
+      tableNumber: numClean,
+      name: tableNameInput.trim() || undefined,
+      status: tableStatusInput,
+      updatedAt: now,
+    }
+
+    await api.updateTable(editingTableId, payload)
     const updated = tables.map((t) =>
-      t.id === editingTableId
-        ? {
-            ...t,
-            tableNumber: numClean,
-            name: tableNameInput.trim() || undefined,
-            status: tableStatusInput,
-            updatedAt: now,
-          }
-        : t
+      t.id === editingTableId ? { ...t, ...payload } : t
     )
 
     saveTables(updated)
@@ -171,22 +175,22 @@ export default function AdminTablesPage() {
     setEditingTableId(null)
   }
 
-  const toggleTableStatus = (id: string) => {
+  const toggleTableStatus = async (id: string) => {
+    const target = tables.find((t) => t.id === id)
+    if (!target) return
+    const nextStatus: TableStatus = target.status === 'active' ? 'inactive' : 'active'
     const now = new Date().toISOString()
+
+    await api.updateTable(id, { status: nextStatus, updatedAt: now })
     const updated = tables.map((t) =>
-      t.id === id
-        ? {
-            ...t,
-            status: t.status === 'active' ? ('inactive' as TableStatus) : ('active' as TableStatus),
-            updatedAt: now,
-          }
-        : t
+      t.id === id ? { ...t, status: nextStatus, updatedAt: now } : t
     )
     saveTables(updated)
   }
 
-  const deleteTable = (id: string, number: string) => {
+  const deleteTable = async (id: string, number: string) => {
     if (confirm(`Are you sure you want to delete ${number}?`)) {
+      await api.deleteTable(id)
       const updated = tables.filter((t) => t.id !== id)
       saveTables(updated)
       if (qrModalTable?.id === id) {

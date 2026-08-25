@@ -28,64 +28,103 @@ export const OUTLETS = [
     name: 'CK Adajan',
     address: 'Ground Floor, Abhinandan Heights, Nr. Madhuvan Circle, L.P. Savani Road, Adajan, Surat',
     phone: '+91-7405021433',
-    timing: 'Mon-Sun: 10 AM - 11 PM',
+    timing: 'Mon-Sun: 10:00 AM - 11:30 PM',
+    openHour: 10,
+    closeHour: 23.5,
     badge: 'ADAJAN SURAT',
     image: '/images/outlet-adajan.jpg',
+    features: ['Luxury Lounge', 'Valet Parking', 'High-Speed WiFi', 'Live Music Nights'],
     thumbnails: [
       '/images/outlet-adajan.jpg',
       '/images/outlet-vesu.jpg',
       '/images/gallery-interior-1.png'
     ],
-    whatsapp: 'https://wa.me/917405021433?text=Hello%20Coffee%20King%20Adajan',
-    mapQuery: 'Coffee+King+Adajan+Surat'
+    whatsapp: 'https://wa.me/917405021433?text=Hello%20Coffee%20King%20Adajan!%20I%20have%20an%20inquiry.',
+    mapQuery: 'Coffee+King+Adajan+Surat',
+    embedMapUrl: 'https://maps.google.com/maps?q=Coffee%20King%20Adajan%20Surat&t=&z=15&ie=UTF8&iwloc=&output=embed'
   },
   {
     id: 'vesu',
     name: 'CK Vesu',
     address: 'UG-1, Shubh Universal, Opp. Vijaya Laxmi Hall, Nr. Western Vesu Point, Vesu Road, Surat 395007',
     phone: '+91-7405034410',
-    timing: 'Mon-Sun: 10 AM - 11 PM',
+    timing: 'Mon-Sun: 10:00 AM - 11:30 PM',
+    openHour: 10,
+    closeHour: 23.5,
     badge: 'VESU SURAT',
     image: '/images/outlet-vesu.jpg',
+    features: ['Rooftop Outdoor', 'Specialty Brew Bar', 'Private Dining Area', 'Pet Friendly'],
     thumbnails: [
       '/images/outlet-vesu.jpg',
       '/images/gallery-interior-1.png',
       '/images/outlet-adajan.jpg'
     ],
-    whatsapp: 'https://wa.me/917405034410?text=Hello%20Coffee%20King%20Vesu',
-    mapQuery: 'Coffee+King+Vesu+Surat'
+    whatsapp: 'https://wa.me/917405034410?text=Hello%20Coffee%20King%20Vesu!%20I%20have%20an%20inquiry.',
+    mapQuery: 'Coffee+King+Vesu+Surat',
+    embedMapUrl: 'https://maps.google.com/maps?q=Coffee%20King%20Vesu%20Surat&t=&z=15&ie=UTF8&iwloc=&output=embed'
   },
   {
     id: 'katargam',
     name: 'CK Katargam',
     address: '101-102, Sunday Hub, Nr. Ankur School, Gajera Road, Katargam, Surat 395004',
     phone: '+91-8347904410',
-    timing: 'Mon-Sun: 10 AM - 11 PM',
+    timing: 'Mon-Sun: 10:00 AM - 11:30 PM',
+    openHour: 10,
+    closeHour: 23.5,
     badge: 'KATARGAM SURAT',
     image: '/images/outlet-katargam.jpg',
+    features: ['Cozy Workstation', 'Artisanal Bakery', 'Free Parking', 'Birthday Party Hall'],
     thumbnails: [
       '/images/outlet-katargam.jpg',
       '/images/outlet-adajan.jpg',
       '/images/outlet-vesu.jpg'
     ],
-    whatsapp: 'https://wa.me/918347904410?text=Hello%20Coffee%20King%20Katargam',
-    mapQuery: 'Coffee+King+Katargam+Surat'
+    whatsapp: 'https://wa.me/918347904410?text=Hello%20Coffee%20King%20Katargam!%20I%20have%20an%20inquiry.',
+    mapQuery: 'Coffee+King+Katargam+Surat',
+    embedMapUrl: 'https://maps.google.com/maps?q=Coffee%20King%20Katargam%20Surat&t=&z=15&ie=UTF8&iwloc=&output=embed'
   },
   {
     id: 'pal',
     name: 'CK Pal',
     address: 'Opp. Kratos Club, Gaurav Path, Pal, Surat',
     phone: '+91-9898514410',
-    timing: 'Mon-Sun: 10 AM - 11 PM',
+    timing: 'Mon-Sun: 10:00 AM - 11:30 PM',
+    openHour: 10,
+    closeHour: 23.5,
     badge: 'PAL SURAT',
     image: '/images/outlet-pal.jpg',
+    features: ['Spacious Lounge', 'Drive-by Takeaway', 'Sizzler Station', 'Wheelchair Accessible'],
     thumbnails: [
       '/images/outlet-pal.jpg',
       '/images/gallery-interior-1.png',
       '/images/outlet-vesu.jpg'
     ],
-    whatsapp: 'https://wa.me/919898514410?text=Hello%20Coffee%20King%20Pal',
-    mapQuery: 'Coffee+King+Pal+Surat'
+    whatsapp: 'https://wa.me/919898514410?text=Hello%20Coffee%20King%20Pal!%20I%20have%20an%20inquiry.',
+    mapQuery: 'Coffee+King+Pal+Surat',
+    embedMapUrl: 'https://maps.google.com/maps?q=Coffee%20King%20Pal%20Surat&t=&z=15&ie=UTF8&iwloc=&output=embed'
+  }
+]
+
+export const CONTACT_FAQS = [
+  {
+    question: 'Do I need a reservation to visit Coffee King outlets?',
+    answer: 'Walk-ins are always welcome at all 4 outlets! However, for weekends, peak evening hours, or large groups (6+ guests), we strongly recommend making a table reservation online or giving us a call in advance.'
+  },
+  {
+    question: 'Can I host private birthday parties or corporate events at Coffee King?',
+    answer: 'Yes! We host private birthday celebrations, group meetups, and corporate get-togethers. Select "Event / Party Booking" in our contact form or chat with our outlet manager directly on WhatsApp.'
+  },
+  {
+    question: 'How do KingCoins rewards work?',
+    answer: 'For every ₹10 spent at any Coffee King outlet, you earn 1 KingCoin! Coins can be redeemed for discounts, free rice bowls, sizzlers, or signature drinks. Ask our lounge team at checkout to register your phone number.'
+  },
+  {
+    question: 'Is valet parking available at your lounge locations?',
+    answer: 'Valet parking is available at our CK Adajan & CK Vesu outlets. Dedicated parking spaces are available at CK Katargam and CK Pal.'
+  },
+  {
+    question: 'Are there options for remote work or studying with laptops?',
+    answer: 'Absoluty! All our lounge outlets feature power sockets, comfortable seating, and high-speed complimentary Wi-Fi for remote working.'
   }
 ]
 

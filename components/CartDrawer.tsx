@@ -9,6 +9,8 @@ import { initialOrders } from '@/lib/data'
 import Image from 'next/image'
 import Link from 'next/link'
 
+import { api } from '@/lib/api-client'
+
 export function CartDrawer() {
   const { cart, removeFromCart, updateQuantity, clearCart, subtotalPrice, isCartOpen, setIsCartOpen, tableContext } = useCart()
   const [step, setStep] = useState<'cart' | 'checkout' | 'success'>('cart')
@@ -47,7 +49,7 @@ export function CartDrawer() {
     }, 300)
   }
 
-  const handleCheckoutSubmit = (e: React.FormEvent) => {
+  const handleCheckoutSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (cart.length === 0) return
 
@@ -81,6 +83,8 @@ export function CartDrawer() {
       updatedAt: now,
     }
 
+    // Save to MongoDB via API
+    await api.createOrder(newOrder)
 
     // Save to localStorage
     try {
@@ -116,8 +120,8 @@ export function CartDrawer() {
         onClick={handleClose}
       />
 
-      <div className="fixed inset-y-0 right-0 max-w-full flex pl-10">
-        <div className="w-screen max-w-md bg-card border-l border-border text-foreground shadow-2xl flex flex-col">
+      <div className="fixed inset-y-0 right-0 max-w-full flex w-full md:w-auto md:pl-10">
+        <div className="w-full md:w-screen md:max-w-md bg-card border-l border-border text-foreground shadow-2xl flex flex-col h-full">
           {/* Header */}
           <div className="p-4 border-b border-border flex items-center justify-between bg-secondary/30">
             <div className="flex items-center gap-2">
@@ -184,7 +188,7 @@ export function CartDrawer() {
                             {item.name}
                           </h4>
                           <p className="text-primary font-bold text-sm">
-                            ${(item.price * item.quantity).toFixed(2)}
+                            ₹{(item.price * item.quantity).toFixed(2)}
                           </p>
                           {item.notes && (
                             <p className="text-xs text-muted-foreground truncate">
@@ -441,7 +445,7 @@ export function CartDrawer() {
                   </div>
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Total Amount:</span>
-                    <span className="font-bold text-primary">${completedOrder.total.toFixed(2)}</span>
+                    <span className="font-bold text-primary">₹{completedOrder.total.toFixed(2)}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Status:</span>
@@ -482,21 +486,21 @@ export function CartDrawer() {
               <div className="space-y-1 text-sm">
                 <div className="flex justify-between text-muted-foreground">
                   <span>Subtotal</span>
-                  <span>${subtotalPrice.toFixed(2)}</span>
+                  <span>₹{subtotalPrice.toFixed(2)}</span>
                 </div>
                 <div className="flex justify-between text-muted-foreground">
                   <span>Tax (8%)</span>
-                  <span>${tax.toFixed(2)}</span>
+                  <span>₹{tax.toFixed(2)}</span>
                 </div>
                 {orderType === 'delivery' && step === 'checkout' && (
                   <div className="flex justify-between text-muted-foreground">
                     <span>Delivery Fee</span>
-                    <span>${deliveryFee.toFixed(2)}</span>
+                    <span>₹{deliveryFee.toFixed(2)}</span>
                   </div>
                 )}
                 <div className="flex justify-between font-bold text-foreground text-base pt-1 border-t border-border">
                   <span>Total</span>
-                  <span className="text-primary">${totalPrice.toFixed(2)}</span>
+                  <span className="text-primary">₹{totalPrice.toFixed(2)}</span>
                 </div>
               </div>
 

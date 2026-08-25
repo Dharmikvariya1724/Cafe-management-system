@@ -7,7 +7,7 @@ export const menuItems: MenuItem[] = [
     id: '1',
     name: 'Espresso',
     category: 'espresso',
-    price: 3.50,
+    price: 120.00,
     description: 'Rich and intense single or double shot of freshly pulled espresso',
     image: '/images/espresso.png',
     available: true,
@@ -17,7 +17,7 @@ export const menuItems: MenuItem[] = [
     id: '2',
     name: 'Cappuccino',
     category: 'coffee',
-    price: 4.50,
+    price: 160.00,
     description: 'Smooth blend of espresso, steamed milk, and velvety milk foam',
     image: '/images/cappuccino.png',
     available: true,
@@ -27,7 +27,7 @@ export const menuItems: MenuItem[] = [
     id: '3',
     name: 'Latte',
     category: 'coffee',
-    price: 4.75,
+    price: 180.00,
     description: 'Creamy and comforting espresso with steamed milk',
     image: '/images/latte.png',
     available: true,
@@ -37,7 +37,7 @@ export const menuItems: MenuItem[] = [
     id: '4',
     name: 'Americano',
     category: 'espresso',
-    price: 3.75,
+    price: 140.00,
     description: 'Bold espresso shots topped with hot water for a full-bodied flavor',
     image: '/images/espresso.png',
     available: true
@@ -46,7 +46,7 @@ export const menuItems: MenuItem[] = [
     id: '5',
     name: 'Macchiato',
     category: 'espresso',
-    price: 4.25,
+    price: 150.00,
     description: 'Espresso marked with a dollop of milk foam',
     image: '/images/cappuccino.png',
     available: true
@@ -55,7 +55,7 @@ export const menuItems: MenuItem[] = [
     id: '6',
     name: 'Mocha',
     category: 'coffee',
-    price: 5.00,
+    price: 210.00,
     description: 'Perfect blend of espresso, steamed milk, and rich chocolate',
     image: '/images/latte.png',
     available: true,
@@ -67,7 +67,7 @@ export const menuItems: MenuItem[] = [
     id: '7',
     name: 'Iced Coffee',
     category: 'cold',
-    price: 4.25,
+    price: 160.00,
     description: 'Chilled freshly brewed coffee served over ice',
     image: '/images/latte.png',
     available: true
@@ -76,7 +76,7 @@ export const menuItems: MenuItem[] = [
     id: '8',
     name: 'Cold Brew',
     category: 'cold',
-    price: 4.75,
+    price: 190.00,
     description: 'Smooth and naturally sweet cold brew concentrate',
     image: '/images/espresso.png',
     available: true,
@@ -86,7 +86,7 @@ export const menuItems: MenuItem[] = [
     id: '9',
     name: 'Iced Latte',
     category: 'cold',
-    price: 4.75,
+    price: 190.00,
     description: 'Creamy iced espresso with cold milk',
     image: '/images/latte.png',
     available: true
@@ -97,7 +97,7 @@ export const menuItems: MenuItem[] = [
     id: '10',
     name: 'Chamomile Tea',
     category: 'tea',
-    price: 3.50,
+    price: 130.00,
     description: 'Soothing herbal tea perfect for relaxation',
     image: '/images/cappuccino.png',
     available: true
@@ -106,7 +106,7 @@ export const menuItems: MenuItem[] = [
     id: '11',
     name: 'Earl Grey',
     category: 'tea',
-    price: 3.75,
+    price: 140.00,
     description: 'Classic black tea with bergamot essence',
     image: '/images/espresso.png',
     available: true
@@ -115,7 +115,7 @@ export const menuItems: MenuItem[] = [
     id: '12',
     name: 'Green Tea',
     category: 'tea',
-    price: 3.75,
+    price: 140.00,
     description: 'Fresh and light green tea with natural antioxidants',
     image: '/images/cappuccino.png',
     available: true
@@ -126,7 +126,7 @@ export const menuItems: MenuItem[] = [
     id: '13',
     name: 'Croissant',
     category: 'breakfast',
-    price: 3.99,
+    price: 120.00,
     description: 'Buttery and flaky French pastry freshly baked daily',
     image: '/images/croissant.png',
     available: true,
@@ -136,7 +136,7 @@ export const menuItems: MenuItem[] = [
     id: '14',
     name: 'Avocado Toast',
     category: 'breakfast',
-    price: 8.99,
+    price: 260.00,
     description: 'Fresh avocado on artisan toast with lemon and herbs',
     image: '/images/croissant.png',
     available: true,
@@ -146,7 +146,7 @@ export const menuItems: MenuItem[] = [
     id: '15',
     name: 'Yogurt Parfait',
     category: 'breakfast',
-    price: 7.99,
+    price: 220.00,
     description: 'Creamy yogurt layered with granola and fresh berries',
     image: '/images/croissant.png',
     available: true
@@ -157,7 +157,7 @@ export const menuItems: MenuItem[] = [
     id: '20',
     name: 'Chocolate Cake',
     category: 'desserts',
-    price: 5.99,
+    price: 240.00,
     description: 'Rich and decadent dark chocolate slice',
     image: '/images/croissant.png',
     available: true,
@@ -167,7 +167,7 @@ export const menuItems: MenuItem[] = [
     id: '21',
     name: 'Cheesecake',
     category: 'desserts',
-    price: 6.99,
+    price: 280.00,
     description: 'Creamy New York style cheesecake',
     image: '/images/croissant.png',
     available: true
@@ -176,7 +176,7 @@ export const menuItems: MenuItem[] = [
     id: '22',
     name: 'Specialty Sizzler Bowl',
     category: 'snacks',
-    price: 9.99,
+    price: 290.00,
     description: 'Smoking hot sizzler rice bowl with grilled veggies',
     image: '/images/croissant.png',
     available: true,
@@ -186,32 +186,55 @@ export const menuItems: MenuItem[] = [
 
 export const reviews: Review[] = [
   {
-    id: '1',
-    name: 'Sarah Johnson',
+    id: 'rev_1',
+    name: 'Aarav Patel',
     photo: '/images/avatar-1.jpg',
     rating: 5,
-    text: 'Coffee King is my daily go-to place in Surat! The baristas are incredibly skilled and always remember my order.',
-    date: '2024-05-15',
-    verified: true
+    text: 'Best coffee in town! The cappuccino is incredibly smooth and the QR code table ordering made it super convenient.',
+    date: '2026-08-15',
+    verified: true,
+    orderNumber: '#CC-1001'
   },
   {
-    id: '2',
-    name: 'Michael Chen',
+    id: 'rev_2',
+    name: 'Priya Sharma',
     photo: '/images/avatar-2.jpg',
     rating: 5,
-    text: 'Outstanding atmosphere and excellent coffee quality across Vesu and Adajan outlets. Highly recommended!',
-    date: '2024-05-10',
-    verified: true
+    text: 'Loved the ambiance at the Vesu outlet! Avocado toast and mocha are a must-try.',
+    date: '2026-08-18',
+    verified: true,
+    orderNumber: '#CC-1002'
   },
   {
-    id: '3',
-    name: 'Emma Williams',
+    id: 'rev_3',
+    name: 'Rohan Mehta',
     photo: '/images/avatar-3.jpg',
-    rating: 5,
-    text: 'Love the cozy vibes and attention to detail in every cup. Best cafe in Surat hands down!',
-    date: '2024-05-05',
-    verified: true
+    rating: 4,
+    text: 'Great place to hang out with friends. Fast Wi-Fi and awesome cold brew.',
+    date: '2026-08-20',
+    verified: true,
+    orderNumber: '#CC-1003'
   },
+  {
+    id: 'rev_4',
+    name: 'Kavya Shah',
+    photo: '/images/avatar-1.jpg',
+    rating: 5,
+    text: 'The specialty sizzler bowl is absolute perfection! Super fast service and warm hospitality.',
+    date: '2026-08-22',
+    verified: true,
+    orderNumber: '#CC-1004'
+  },
+  {
+    id: 'rev_5',
+    name: 'Deepak Varma',
+    photo: '',
+    rating: 4,
+    text: 'Iced latte was very refreshing. Nice music and cozy seating.',
+    date: '2026-08-24',
+    verified: false,
+    orderNumber: '#CC-1005'
+  }
 ]
 
 export const galleryImages: GalleryImage[] = [
@@ -273,6 +296,8 @@ export const galleryImages: GalleryImage[] = [
   },
 ]
 
+const now = Date.now()
+const oneDayMs = 24 * 60 * 60 * 1000
 
 export const initialOrders: Array<import('./types').Order> = [
   {
@@ -282,19 +307,20 @@ export const initialOrders: Array<import('./types').Order> = [
     customerEmail: 'aarav.patel@example.com',
     customerPhone: '+91 98765 43210',
     orderType: 'dine-in',
-    tableNumber: 'Table 4',
+    tableNumber: 'Table 04',
+    tableToken: 'ck-tbl-tok-004-j0k1l2',
     items: [
-      { id: 'item-1', menuItemId: '2', name: 'Cappuccino', price: 4.50, quantity: 2, image: '/images/cappuccino.png' },
-      { id: 'item-2', menuItemId: '13', name: 'Croissant', price: 3.99, quantity: 1, image: '/images/croissant.png' }
+      { id: 'item-1', menuItemId: '2', name: 'Cappuccino', price: 160.00, quantity: 2, image: '/images/cappuccino.png' },
+      { id: 'item-2', menuItemId: '13', name: 'Butter Croissant', price: 120.00, quantity: 1, image: '/images/croissant.png' }
     ],
-    subtotal: 12.99,
-    tax: 1.04,
-    total: 14.03,
-    status: 'pending',
+    subtotal: 440.00,
+    tax: 35.20,
+    total: 475.20,
+    status: 'completed',
     paymentMethod: 'upi',
     specialInstructions: 'Extra hot cappuccino please',
-    createdAt: new Date(Date.now() - 15 * 60000).toISOString(),
-    updatedAt: new Date(Date.now() - 15 * 60000).toISOString()
+    createdAt: new Date(now - 10 * oneDayMs).toISOString(),
+    updatedAt: new Date(now - 10 * oneDayMs).toISOString()
   },
   {
     id: 'ord-102',
@@ -304,17 +330,17 @@ export const initialOrders: Array<import('./types').Order> = [
     customerPhone: '+91 98123 45678',
     orderType: 'pickup',
     items: [
-      { id: 'item-3', menuItemId: '8', name: 'Cold Brew', price: 4.75, quantity: 1, image: '/images/cold-brew.jpg' },
-      { id: 'item-4', menuItemId: '14', name: 'Avocado Toast', price: 8.99, quantity: 1, image: '/images/avocado-toast.jpg' }
+      { id: 'item-3', menuItemId: '8', name: 'Cold Brew', price: 190.00, quantity: 1, image: '/images/espresso.png' },
+      { id: 'item-4', menuItemId: '11', name: 'Avocado Toast', price: 260.00, quantity: 1, image: '/images/croissant.png' }
     ],
-    subtotal: 13.74,
-    tax: 1.10,
-    total: 14.84,
-    status: 'confirmed',
+    subtotal: 450.00,
+    tax: 36.00,
+    total: 486.00,
+    status: 'completed',
     paymentMethod: 'card',
-    specialInstructions: 'Will pick up at 4:30 PM',
-    createdAt: new Date(Date.now() - 45 * 60000).toISOString(),
-    updatedAt: new Date(Date.now() - 30 * 60000).toISOString()
+    specialInstructions: 'Pick up at 4:30 PM',
+    createdAt: new Date(now - 7 * oneDayMs).toISOString(),
+    updatedAt: new Date(now - 7 * oneDayMs).toISOString()
   },
   {
     id: 'ord-103',
@@ -323,19 +349,60 @@ export const initialOrders: Array<import('./types').Order> = [
     customerEmail: 'rohan.m@example.com',
     customerPhone: '+91 99887 76655',
     orderType: 'delivery',
-    address: 'B-402, Sunrise Apartments, M.G. Road',
+    address: 'B-402, Sunrise Apartments, M.G. Road, Surat',
     items: [
-      { id: 'item-5', menuItemId: '6', name: 'Mocha', price: 5.00, quantity: 2, image: '/images/mocha.jpg' },
-      { id: 'item-6', menuItemId: '20', name: 'Chocolate Cake', price: 5.99, quantity: 1, image: '/images/chocolate-cake.jpg' }
+      { id: 'item-5', menuItemId: '6', name: 'Mocha', price: 210.00, quantity: 2, image: '/images/latte.png' },
+      { id: 'item-6', menuItemId: '17', name: 'Dark Chocolate Cake', price: 240.00, quantity: 1, image: '/images/croissant.png' }
     ],
-    subtotal: 15.99,
-    tax: 1.28,
-    total: 17.27,
-    status: 'preparing',
+    subtotal: 660.00,
+    tax: 52.80,
+    total: 712.80,
+    status: 'completed',
     paymentMethod: 'cash',
     specialInstructions: 'Ring doorbell twice',
-    createdAt: new Date(Date.now() - 90 * 60000).toISOString(),
-    updatedAt: new Date(Date.now() - 20 * 60000).toISOString()
+    createdAt: new Date(now - 3 * oneDayMs).toISOString(),
+    updatedAt: new Date(now - 3 * oneDayMs).toISOString()
+  },
+  {
+    id: 'ord-104',
+    orderNumber: '#CC-1004',
+    customerName: 'Kavya Shah',
+    customerEmail: 'kavya.shah@example.com',
+    customerPhone: '+91 98981 12233',
+    orderType: 'dine-in',
+    tableNumber: 'Table 01',
+    items: [
+      { id: 'item-7', menuItemId: '19', name: 'Specialty Sizzler Bowl', price: 290.00, quantity: 2, image: '/images/croissant.png' },
+      { id: 'item-8', menuItemId: '9', name: 'Iced Latte', price: 190.00, quantity: 2, image: '/images/latte.png' }
+    ],
+    subtotal: 960.00,
+    tax: 76.80,
+    total: 1036.80,
+    status: 'preparing',
+    paymentMethod: 'upi',
+    specialInstructions: 'Spicy sizzler sauce',
+    createdAt: new Date(now - 1 * oneDayMs).toISOString(),
+    updatedAt: new Date(now - 1 * oneDayMs).toISOString()
+  },
+  {
+    id: 'ord-105',
+    orderNumber: '#CC-1005',
+    customerName: 'Deepak Varma',
+    customerEmail: 'deepak.v@example.com',
+    customerPhone: '+91 97123 99887',
+    orderType: 'pickup',
+    items: [
+      { id: 'item-9', menuItemId: '3', name: 'Latte', price: 180.00, quantity: 1, image: '/images/latte.png' },
+      { id: 'item-10', menuItemId: '18', name: 'NY Cheesecake', price: 280.00, quantity: 1, image: '/images/croissant.png' }
+    ],
+    subtotal: 460.00,
+    tax: 36.80,
+    total: 496.80,
+    status: 'pending',
+    paymentMethod: 'cash',
+    specialInstructions: 'Extra napkins please',
+    createdAt: new Date(now - 2 * 3600000).toISOString(),
+    updatedAt: new Date(now - 2 * 3600000).toISOString()
   }
 ]
 

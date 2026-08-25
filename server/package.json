@@ -1,0 +1,23 @@
+{
+  "name": "cafe-management-backend",
+  "version": "1.0.0",
+  "description": "Express.js and MongoDB backend server for Cafe Management System",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "dev": "nodemon index.js",
+    "migrate": "node migrations/20260825_001_seed_initial_data.js",
+    "seed": "node seed/seedData.js"
+  },
+  "dependencies": {
+    "bcryptjs": "^3.0.3",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2",
+    "jsonwebtoken": "^9.0.3",
+    "mongoose": "^8.9.5"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.9"
+  }
+}

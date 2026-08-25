@@ -2,13 +2,14 @@
 
 import { useState } from 'react'
 import { Mail, Check } from 'lucide-react'
+import { api } from '@/lib/api-client'
 
 export function NewsletterForm() {
   const [email, setEmail] = useState('')
   const [submitted, setSubmitted] = useState(false)
   const [error, setError] = useState('')
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError('')
 
@@ -22,11 +23,18 @@ export function NewsletterForm() {
       return
     }
 
-    // Store in localStorage for mock implementation
-    const subscribers = JSON.parse(localStorage.getItem('newsletter-subscribers') || '[]')
-    if (!subscribers.includes(email)) {
-      subscribers.push(email)
-      localStorage.setItem('newsletter-subscribers', JSON.stringify(subscribers))
+    // Save subscriber to MongoDB via API
+    await api.subscribeNewsletter(email)
+
+    // Store in localStorage for offline fallback
+    try {
+      const subscribers = JSON.parse(localStorage.getItem('newsletter-subscribers') || '[]')
+      if (!subscribers.includes(email)) {
+        subscribers.push(email)
+        localStorage.setItem('newsletter-subscribers', JSON.stringify(subscribers))
+      }
+    } catch {
+      // ignore localstorage errors
     }
 
     setSubmitted(true)

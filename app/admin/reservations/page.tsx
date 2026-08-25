@@ -4,21 +4,34 @@ import { useEffect, useState } from 'react'
 import type { Reservation } from '@/lib/types'
 import { Trash2, Check, X, Eye } from 'lucide-react'
 
+import { api } from '@/lib/api-client'
+
 export default function AdminReservations() {
   const [reservations, setReservations] = useState<Reservation[]>([])
   const [selectedReservation, setSelectedReservation] = useState<Reservation | null>(null)
   const [filterStatus, setFilterStatus] = useState<'all' | 'pending' | 'confirmed' | 'cancelled'>('all')
 
+  const loadReservations = async () => {
+    const data = await api.getReservations()
+    if (data && Array.isArray(data)) {
+      setReservations(data)
+      localStorage.setItem('reservations', JSON.stringify(data))
+    } else {
+      const stored = JSON.parse(localStorage.getItem('reservations') || '[]')
+      setReservations(stored)
+    }
+  }
+
   useEffect(() => {
-    const data = JSON.parse(localStorage.getItem('reservations') || '[]')
-    setReservations(data)
+    loadReservations()
   }, [])
 
   const filteredReservations = reservations.filter(r =>
     filterStatus === 'all' ? true : r.status === filterStatus
   )
 
-  const updateReservationStatus = (id: string, newStatus: typeof reservations[0]['status']) => {
+  const updateReservationStatus = async (id: string, newStatus: typeof reservations[0]['status']) => {
+    await api.updateReservationStatus(id, newStatus)
     const updated = reservations.map(r =>
       r.id === id ? { ...r, status: newStatus } : r
     )
@@ -26,8 +39,9 @@ export default function AdminReservations() {
     localStorage.setItem('reservations', JSON.stringify(updated))
   }
 
-  const deleteReservation = (id: string) => {
+  const deleteReservation = async (id: string) => {
     if (confirm('Are you sure you want to delete this reservation?')) {
+      await api.deleteReservation(id)
       const updated = reservations.filter(r => r.id !== id)
       setReservations(updated)
       localStorage.setItem('reservations', JSON.stringify(updated))

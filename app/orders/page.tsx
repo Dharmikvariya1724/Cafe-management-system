@@ -3,15 +3,24 @@
 import { useState, useEffect } from 'react'
 import { Navigation } from '@/components/Navigation'
 import { Footer } from '@/components/Footer'
-import type { Order, OrderStatus } from '@/lib/types'
-import { initialOrders } from '@/lib/data'
-import { Search, Clock, CheckCircle2, PackageCheck, CookingPot, ShoppingBag, XCircle, AlertCircle, RefreshCw } from 'lucide-react'
+import type { Order, OrderStatus, Review } from '@/lib/types'
+import { initialOrders, reviews as initialReviews } from '@/lib/data'
+import { Search, Clock, CheckCircle2, PackageCheck, CookingPot, ShoppingBag, XCircle, RefreshCw, Star, MessageSquarePlus, Check, X } from 'lucide-react'
 import Image from 'next/image'
+import { api } from '@/lib/api-client'
 
 export default function UserOrdersPage() {
   const [orders, setOrders] = useState<Order[]>([])
   const [searchQuery, setSearchQuery] = useState('')
   const [isRefreshing, setIsRefreshing] = useState(false)
+
+  // Review Modal State
+  const [activeReviewOrder, setActiveReviewOrder] = useState<Order | null>(null)
+  const [reviewRating, setReviewRating] = useState(5)
+  const [reviewName, setReviewName] = useState('')
+  const [reviewText, setReviewText] = useState('')
+  const [isSubmittingReview, setIsSubmittingReview] = useState(false)
+  const [submittedMessage, setSubmittedMessage] = useState('')
 
   const loadOrders = () => {
     setIsRefreshing(true)
@@ -46,6 +55,58 @@ export default function UserOrdersPage() {
       order.customerName.toLowerCase().includes(query)
     )
   })
+
+  const handleOpenReviewModal = (order: Order) => {
+    setActiveReviewOrder(order)
+    setReviewName(order.customerName || '')
+    setReviewRating(5)
+    setReviewText('')
+    setSubmittedMessage('')
+  }
+
+  const handleSubmitReview = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!activeReviewOrder || !reviewText.trim()) return
+
+    setIsSubmittingReview(true)
+
+    const newReviewData: Review = {
+      id: `rev_${Date.now()}`,
+      name: reviewName.trim() || activeReviewOrder.customerName || 'Happy Customer',
+      photo: '/images/avatar-1.jpg',
+      rating: reviewRating,
+      text: reviewText.trim(),
+      date: new Date().toISOString().split('T')[0],
+      verified: false, // Pending Admin Checkbox verification!
+      orderId: activeReviewOrder.id,
+      orderNumber: activeReviewOrder.orderNumber,
+    }
+
+    try {
+      await api.createReview(newReviewData)
+    } catch (err) {
+      console.warn('API review save warning, using local state:', err)
+    }
+
+    // Save locally
+    try {
+      const storedReviewsStr = localStorage.getItem('coffee_reviews')
+      const storedReviews: Review[] = storedReviewsStr ? JSON.parse(storedReviewsStr) : initialReviews
+      const updatedReviews = [newReviewData, ...storedReviews]
+      localStorage.setItem('coffee_reviews', JSON.stringify(updatedReviews))
+      window.dispatchEvent(new Event('reviewsUpdated'))
+    } catch (err) {
+      console.error('Failed to update local reviews:', err)
+    }
+
+    setIsSubmittingReview(false)
+    setSubmittedMessage('Thank you! Your review has been submitted for admin approval.')
+
+    setTimeout(() => {
+      setActiveReviewOrder(null)
+      setSubmittedMessage('')
+    }, 2000)
+  }
 
   const getStatusBadge = (status: OrderStatus) => {
     switch (status) {
@@ -112,7 +173,7 @@ export default function UserOrdersPage() {
                 Track Your Orders
               </h1>
               <p className="text-foreground/70 text-sm sm:text-base">
-                Check real-time updates and status of your coffee orders
+                Check real-time status of your coffee orders & share your reviews
               </p>
             </div>
             <button
@@ -258,19 +319,29 @@ export default function UserOrdersPage() {
                                 </div>
                               </div>
                               <span className="font-semibold text-foreground">
-                                ${(item.price * item.quantity).toFixed(2)}
+                                ₹{(item.price * item.quantity).toFixed(2)}
                               </span>
                             </div>
                           ))}
                         </div>
                       </div>
 
-                      {/* Total */}
-                      <div className="pt-3 border-t border-border flex justify-between items-center text-base">
-                        <span className="font-bold text-foreground">Total Paid / Amount Due</span>
-                        <span className="font-heading font-bold text-lg text-primary">
-                          ${order.total.toFixed(2)}
-                        </span>
+                      {/* Bottom Total & Rate Order Action */}
+                      <div className="pt-4 border-t border-border flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+                        <div>
+                          <span className="text-xs text-muted-foreground block">Total Paid / Amount Due</span>
+                          <span className="font-heading font-bold text-xl text-primary">
+                            ₹{order.total.toFixed(2)}
+                          </span>
+                        </div>
+
+                        <button
+                          onClick={() => handleOpenReviewModal(order)}
+                          className="inline-flex items-center justify-center gap-2 bg-amber-500 hover:bg-amber-600 text-white px-5 py-2.5 rounded-xl font-bold text-xs uppercase tracking-wider shadow-sm transition-transform active:scale-95"
+                        >
+                          <MessageSquarePlus className="w-4 h-4" />
+                          Rate & Review Order
+                        </button>
                       </div>
                     </div>
                   </div>
@@ -288,6 +359,116 @@ export default function UserOrdersPage() {
           )}
         </div>
       </section>
+
+      {/* REVIEW MODAL */}
+      {activeReviewOrder && (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-card rounded-2xl border border-border max-w-lg w-full p-6 shadow-2xl space-y-4 animate-in fade-in zoom-in duration-200">
+            <div className="flex items-center justify-between border-b border-border pb-3">
+              <div>
+                <h3 className="font-heading font-bold text-xl text-foreground">
+                  Rate & Review Order
+                </h3>
+                <p className="text-xs text-muted-foreground">
+                  Order {activeReviewOrder.orderNumber}
+                </p>
+              </div>
+              <button
+                onClick={() => setActiveReviewOrder(null)}
+                className="p-1 rounded-lg hover:bg-secondary text-muted-foreground"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {submittedMessage ? (
+              <div className="p-6 text-center space-y-3">
+                <div className="w-12 h-12 bg-green-100 text-green-700 rounded-full flex items-center justify-center mx-auto">
+                  <Check className="w-6 h-6" />
+                </div>
+                <p className="font-bold text-foreground text-base">{submittedMessage}</p>
+              </div>
+            ) : (
+              <form onSubmit={handleSubmitReview} className="space-y-4">
+                {/* Star Rating picker */}
+                <div>
+                  <label className="block text-xs font-bold text-foreground uppercase tracking-wider mb-2">
+                    Your Rating
+                  </label>
+                  <div className="flex items-center gap-2">
+                    {[1, 2, 3, 4, 5].map((star) => (
+                      <button
+                        key={star}
+                        type="button"
+                        onClick={() => setReviewRating(star)}
+                        className="p-1 transition-transform hover:scale-125 focus:outline-none"
+                      >
+                        <Star
+                          className={`w-8 h-8 ${
+                            star <= reviewRating
+                              ? 'fill-amber-400 text-amber-400'
+                              : 'text-gray-300'
+                          }`}
+                        />
+                      </button>
+                    ))}
+                    <span className="text-sm font-extrabold text-foreground ml-2">
+                      {reviewRating} / 5
+                    </span>
+                  </div>
+                </div>
+
+                {/* Name */}
+                <div>
+                  <label className="block text-xs font-bold text-foreground uppercase tracking-wider mb-1">
+                    Your Name
+                  </label>
+                  <input
+                    type="text"
+                    value={reviewName}
+                    onChange={(e) => setReviewName(e.target.value)}
+                    placeholder="Enter your name"
+                    required
+                    className="w-full px-3 py-2 bg-secondary/50 border border-border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+                  />
+                </div>
+
+                {/* Review Text */}
+                <div>
+                  <label className="block text-xs font-bold text-foreground uppercase tracking-wider mb-1">
+                    Your Review / Feedback
+                  </label>
+                  <textarea
+                    rows={4}
+                    value={reviewText}
+                    onChange={(e) => setReviewText(e.target.value)}
+                    placeholder="Tell us about the coffee, taste, packaging, or speed of service..."
+                    required
+                    className="w-full px-3 py-2 bg-secondary/50 border border-border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+                  />
+                </div>
+
+                <div className="pt-2 flex justify-end gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setActiveReviewOrder(null)}
+                    className="px-4 py-2 bg-secondary text-foreground rounded-xl text-xs font-bold hover:bg-secondary/80"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={isSubmittingReview}
+                    className="px-6 py-2 bg-primary text-primary-foreground rounded-xl text-xs font-bold hover:bg-primary/90 shadow-md transition-all active:scale-95 disabled:opacity-50"
+                  >
+                    {isSubmittingReview ? 'Submitting...' : 'Submit Review'}
+                  </button>
+                </div>
+              </form>
+            )}
+          </div>
+        </div>
+      )}
 
       <Footer />
     </main>

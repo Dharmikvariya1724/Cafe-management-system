@@ -1,19 +1,27 @@
 import { Analytics } from '@vercel/analytics/next'
-import type { Metadata } from 'next'
+import type { Metadata, Viewport } from 'next'
 import './globals.css'
 import { BUSINESS_NAME, BUSINESS_DESCRIPTION } from '@/lib/constants'
 import { Providers } from '@/components/Providers'
+import { MobileAppDock } from '@/components/MobileAppDock'
 
-export const viewport = {
+export const viewport: Viewport = {
   width: 'device-width',
   initialScale: 1,
   maximumScale: 1,
+  userScalable: false,
+  themeColor: '#8b4513',
 }
 
 export const metadata: Metadata = {
   title: "Coffee King – Celebrate Everyday | Surat's Most Lively Café",
   description: BUSINESS_DESCRIPTION,
   keywords: 'coffee king, surat cafe, adajan coffee king, vesu coffee king, katargam coffee king, pal coffee king, specialty coffee',
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: 'default',
+    title: 'Coffee King',
+  },
   openGraph: {
     title: "Coffee King – Celebrate Everyday | Surat's Most Lively Café",
     description: BUSINESS_DESCRIPTION,
@@ -21,7 +29,6 @@ export const metadata: Metadata = {
     siteName: BUSINESS_NAME,
     type: 'website',
   },
-
   icons: {
     icon: [
       {
@@ -48,13 +55,13 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className="bg-background">
-      <body className="font-sans antialiased">
+      <body className="font-sans antialiased pb-16 md:pb-0">
         <Providers>
           {children}
+          <MobileAppDock />
         </Providers>
         {process.env.NODE_ENV === 'production' && <Analytics />}
       </body>
     </html>
   )
 }
-

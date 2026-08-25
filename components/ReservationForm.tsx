@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { RESERVATION_TIME_SLOTS, GUEST_COUNTS } from '@/lib/constants'
 import type { Reservation } from '@/lib/types'
 import { Calendar, Clock, Users, Mail, Phone, MessageSquare, Check } from 'lucide-react'
+import { api } from '@/lib/api-client'
 
 export function ReservationForm() {
   const [submitted, setSubmitted] = useState(false)
@@ -40,14 +41,14 @@ export function ReservationForm() {
     return Object.keys(newErrors).length === 0
   }
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
 
     if (!validateForm()) return
 
-    // Create reservation
+    // Create reservation object
     const reservation: Reservation = {
-      id: Date.now().toString(),
+      id: `res_${Date.now()}`,
       name: formData.name,
       email: formData.email,
       phone: formData.phone,
@@ -59,10 +60,17 @@ export function ReservationForm() {
       createdAt: new Date().toISOString()
     }
 
-    // Store in localStorage
-    const reservations = JSON.parse(localStorage.getItem('reservations') || '[]')
-    reservations.push(reservation)
-    localStorage.setItem('reservations', JSON.stringify(reservations))
+    // Save to MongoDB via API
+    await api.createReservation(reservation)
+
+    // Store in localStorage fallback
+    try {
+      const reservations = JSON.parse(localStorage.getItem('reservations') || '[]')
+      reservations.push(reservation)
+      localStorage.setItem('reservations', JSON.stringify(reservations))
+    } catch {
+      // ignore localstorage errors
+    }
 
     setSubmitted(true)
     setFormData({

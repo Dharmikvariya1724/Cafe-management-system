@@ -6,6 +6,8 @@ import { initialOrders } from '@/lib/data'
 import { Check, X, Eye, Trash2, Clock, CookingPot, PackageCheck, CheckCircle2, Search, Filter, Phone, Mail, MapPin, RefreshCw } from 'lucide-react'
 import Image from 'next/image'
 
+import { api } from '@/lib/api-client'
+
 export default function AdminOrdersPage() {
   const [orders, setOrders] = useState<Order[]>([])
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null)
@@ -13,15 +15,21 @@ export default function AdminOrdersPage() {
   const [searchQuery, setSearchQuery] = useState('')
   const [isRefreshing, setIsRefreshing] = useState(false)
 
-  const loadOrdersFromStorage = () => {
+  const loadOrdersFromStorage = async () => {
     setIsRefreshing(true)
     try {
-      const stored = localStorage.getItem('coffee_orders')
-      if (stored) {
-        setOrders(JSON.parse(stored))
+      const data = await api.getOrders()
+      if (data && Array.isArray(data) && data.length > 0) {
+        setOrders(data)
+        localStorage.setItem('coffee_orders', JSON.stringify(data))
       } else {
-        setOrders(initialOrders)
-        localStorage.setItem('coffee_orders', JSON.stringify(initialOrders))
+        const stored = localStorage.getItem('coffee_orders')
+        if (stored) {
+          setOrders(JSON.parse(stored))
+        } else {
+          setOrders(initialOrders)
+          localStorage.setItem('coffee_orders', JSON.stringify(initialOrders))
+        }
       }
     } catch (err) {
       console.error('Failed to load orders:', err)
@@ -48,21 +56,23 @@ export default function AdminOrdersPage() {
     }
   }
 
-  const updateOrderStatus = (orderId: string, newStatus: OrderStatus) => {
+  const updateOrderStatus = async (orderId: string, newStatus: OrderStatus) => {
     const now = new Date().toISOString()
+    await api.updateOrderStatus(orderId, newStatus)
+
     const updated = orders.map((o) =>
       o.id === orderId ? { ...o, status: newStatus, updatedAt: now } : o
     )
     saveOrders(updated)
 
-    // Update selected order view if currently selected
     if (selectedOrder && selectedOrder.id === orderId) {
       setSelectedOrder({ ...selectedOrder, status: newStatus, updatedAt: now })
     }
   }
 
-  const deleteOrder = (orderId: string) => {
+  const deleteOrder = async (orderId: string) => {
     if (confirm('Are you sure you want to delete this order?')) {
+      await api.deleteOrder(orderId)
       const updated = orders.filter((o) => o.id !== orderId)
       saveOrders(updated)
       if (selectedOrder?.id === orderId) {
@@ -253,7 +263,7 @@ export default function AdminOrdersPage() {
                     <div className="flex items-center gap-3">
                       <span>{order.items.length} items</span>
                       <span className="font-bold text-foreground text-sm">
-                        ${order.total.toFixed(2)}
+                        ₹{order.total.toFixed(2)}
                       </span>
                     </div>
                   </div>
@@ -444,12 +454,12 @@ export default function AdminOrdersPage() {
                         <div>
                           <p className="font-semibold text-foreground">{item.name}</p>
                           <p className="text-[10px] text-muted-foreground">
-                            ${item.price.toFixed(2)} × {item.quantity}
+                            ₹{item.price.toFixed(2)} × {item.quantity}
                           </p>
                         </div>
                       </div>
                       <span className="font-bold text-foreground">
-                        ${(item.price * item.quantity).toFixed(2)}
+                        ₹{(item.price * item.quantity).toFixed(2)}
                       </span>
                     </div>
                   ))}
@@ -460,15 +470,15 @@ export default function AdminOrdersPage() {
               <div className="border-t border-border pt-3 space-y-1 text-xs text-muted-foreground">
                 <div className="flex justify-between">
                   <span>Subtotal</span>
-                  <span>${selectedOrder.subtotal.toFixed(2)}</span>
+                  <span>₹{selectedOrder.subtotal.toFixed(2)}</span>
                 </div>
                 <div className="flex justify-between">
                   <span>Tax</span>
-                  <span>${selectedOrder.tax.toFixed(2)}</span>
+                  <span>₹{selectedOrder.tax.toFixed(2)}</span>
                 </div>
                 <div className="flex justify-between text-sm font-bold text-foreground pt-1 border-t border-border">
                   <span>Total Amount</span>
-                  <span className="text-primary">${selectedOrder.total.toFixed(2)}</span>
+                  <span className="text-primary">₹{selectedOrder.total.toFixed(2)}</span>
                 </div>
                 <div className="flex justify-between text-[11px] pt-1">
                   <span>Payment Method</span>

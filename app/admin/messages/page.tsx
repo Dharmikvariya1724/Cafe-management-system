@@ -4,16 +4,26 @@ import { useEffect, useState } from 'react'
 import type { ContactMessage } from '@/lib/types'
 import { Trash2, Check, Mail } from 'lucide-react'
 
+import { api } from '@/lib/api-client'
+
 export default function AdminMessages() {
   const [messages, setMessages] = useState<ContactMessage[]>([])
   const [selectedMessage, setSelectedMessage] = useState<ContactMessage | null>(null)
   const [filterReplied, setFilterReplied] = useState<'all' | 'replied' | 'unreplied'>('all')
 
+  const loadMessages = async () => {
+    const data = await api.getMessages()
+    if (data && Array.isArray(data)) {
+      setMessages(data)
+      localStorage.setItem('contact-messages', JSON.stringify(data))
+    } else {
+      const stored = JSON.parse(localStorage.getItem('contact-messages') || '[]')
+      setMessages(stored)
+    }
+  }
+
   useEffect(() => {
-    const data = JSON.parse(localStorage.getItem('contact-messages') || '[]')
-    setMessages(data.sort((a: ContactMessage, b: ContactMessage) =>
-      new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-    ))
+    loadMessages()
   }, [])
 
   const filteredMessages = messages.filter(m =>
@@ -22,7 +32,8 @@ export default function AdminMessages() {
     !m.replied
   )
 
-  const markAsReplied = (id: string) => {
+  const markAsReplied = async (id: string) => {
+    await api.toggleMessageReply(id, true)
     const updated = messages.map(m =>
       m.id === id ? { ...m, replied: true } : m
     )
@@ -33,8 +44,9 @@ export default function AdminMessages() {
     }
   }
 
-  const deleteMessage = (id: string) => {
+  const deleteMessage = async (id: string) => {
     if (confirm('Are you sure you want to delete this message?')) {
+      await api.deleteMessage(id)
       const updated = messages.filter(m => m.id !== id)
       setMessages(updated)
       localStorage.setItem('contact-messages', JSON.stringify(updated))

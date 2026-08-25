@@ -5,6 +5,7 @@ import type { Reservation, ContactMessage, Order } from '@/lib/types'
 import { initialOrders } from '@/lib/data'
 import { BarChart3, CalendarDays, MessageSquare, ShoppingBag, DollarSign, Clock, ArrowRight } from 'lucide-react'
 import Link from 'next/link'
+import { api } from '@/lib/api-client'
 
 export default function AdminDashboard() {
   const [reservations, setReservations] = useState<Reservation[]>([])
@@ -19,40 +20,62 @@ export default function AdminDashboard() {
   })
 
   useEffect(() => {
-    // Load data from localStorage
-    const reservationsData = JSON.parse(localStorage.getItem('reservations') || '[]')
-    const messagesData = JSON.parse(localStorage.getItem('contact-messages') || '[]')
-    
-    let ordersData: Order[] = []
-    try {
-      const storedOrders = localStorage.getItem('coffee_orders')
-      if (storedOrders) {
-        ordersData = JSON.parse(storedOrders)
+    const fetchDashboardData = async () => {
+      // 1. Fetch Orders from DB
+      let ordersData: Order[] = []
+      const apiOrders = await api.getOrders()
+      if (apiOrders && Array.isArray(apiOrders) && apiOrders.length > 0) {
+        ordersData = apiOrders
+        localStorage.setItem('coffee_orders', JSON.stringify(apiOrders))
       } else {
-        ordersData = initialOrders
-        localStorage.setItem('coffee_orders', JSON.stringify(initialOrders))
+        const stored = localStorage.getItem('coffee_orders')
+        if (stored) {
+          try { ordersData = JSON.parse(stored) } catch { ordersData = initialOrders }
+        } else {
+          ordersData = initialOrders
+        }
       }
-    } catch {
-      ordersData = initialOrders
+
+      // 2. Fetch Reservations from DB
+      let reservationsData: Reservation[] = []
+      const apiReservations = await api.getReservations()
+      if (apiReservations && Array.isArray(apiReservations)) {
+        reservationsData = apiReservations
+        localStorage.setItem('reservations', JSON.stringify(apiReservations))
+      } else {
+        reservationsData = JSON.parse(localStorage.getItem('reservations') || '[]')
+      }
+
+      // 3. Fetch Contact Messages from DB
+      let messagesData: ContactMessage[] = []
+      const apiMessages = await api.getMessages()
+      if (apiMessages && Array.isArray(apiMessages)) {
+        messagesData = apiMessages
+        localStorage.setItem('contact-messages', JSON.stringify(apiMessages))
+      } else {
+        messagesData = JSON.parse(localStorage.getItem('contact-messages') || '[]')
+      }
+
+      setReservations(reservationsData)
+      setMessages(messagesData)
+      setOrders(ordersData)
+
+      // Calculate stats
+      const pendingOrd = ordersData.filter((o: Order) => o.status === 'pending')
+      const totalRev = ordersData
+        .filter((o: Order) => o.status !== 'cancelled')
+        .reduce((sum, o) => sum + o.total, 0)
+
+      setStats({
+        totalOrders: ordersData.length,
+        pendingOrders: pendingOrd.length,
+        totalRevenue: Number(totalRev.toFixed(2)),
+        totalReservations: reservationsData.length,
+        totalMessages: messagesData.length
+      })
     }
 
-    setReservations(reservationsData)
-    setMessages(messagesData)
-    setOrders(ordersData)
-
-    // Calculate stats
-    const pendingOrd = ordersData.filter((o: Order) => o.status === 'pending')
-    const totalRev = ordersData
-      .filter((o: Order) => o.status !== 'cancelled')
-      .reduce((sum, o) => sum + o.total, 0)
-
-    setStats({
-      totalOrders: ordersData.length,
-      pendingOrders: pendingOrd.length,
-      totalRevenue: Number(totalRev.toFixed(2)),
-      totalReservations: reservationsData.length,
-      totalMessages: messagesData.length
-    })
+    fetchDashboardData()
   }, [])
 
   const statCards = [
@@ -73,7 +96,7 @@ export default function AdminDashboard() {
     },
     {
       label: 'Estimated Revenue',
-      value: `$${stats.totalRevenue.toFixed(2)}`,
+      value: `₹${stats.totalRevenue.toFixed(2)}`,
       icon: DollarSign,
       color: 'text-green-600',
       href: '/admin/orders'
@@ -174,7 +197,7 @@ export default function AdminDashboard() {
                     <td className="py-3 px-4 text-foreground/80 capitalize">{order.orderType}</td>
                     <td className="py-3 px-4 text-foreground/80">{order.items.length} items</td>
                     <td className="py-3 px-4 font-bold text-foreground">
-                      ${order.total.toFixed(2)}
+                      ₹{order.total.toFixed(2)}
                     </td>
                     <td className="py-3 px-4">
                       <span

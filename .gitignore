@@ -16,3 +16,5 @@ node_modules
 *.tsbuildinfo
 .env
 .env.local
+dbdata/
+server/dbdata/
