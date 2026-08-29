@@ -4,7 +4,10 @@ import { useEffect, useState } from 'react'
 import type { Order } from '@/lib/types'
 import { initialOrders } from '@/lib/data'
 import { api } from '@/lib/api-client'
-import { FileText, Printer, Download, Calendar, Search, Filter, ShoppingBag, CreditCard, DollarSign, RefreshCw, CheckCircle2, Phone, Mail, MapPin } from 'lucide-react'
+import { FileText, Printer, Download, Calendar, Search, Filter, ShoppingBag, CreditCard, DollarSign, RefreshCw, CheckCircle2, Phone, Mail, MapPin, FileSpreadsheet } from 'lucide-react'
+import jsPDF from 'jspdf'
+import autoTable from 'jspdf-autotable'
+import * as XLSX from 'xlsx'
 
 export default function AdminInvoicesPage() {
   const [orders, setOrders] = useState<Order[]>([])
@@ -12,13 +15,11 @@ export default function AdminInvoicesPage() {
 
   // Date Filter states (YYYY-MM-DD)
   const todayStr = new Date().toISOString().split('T')[0]
-  // Default to 30 days ago
   const defaultStartStr = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
 
   const [startDate, setStartDate] = useState<string>(defaultStartStr)
   const [endDate, setEndDate] = useState<string>(todayStr)
   const [searchQuery, setSearchQuery] = useState<string>('')
-  const [selectedOrderForInvoice, setSelectedOrderForInvoice] = useState<Order | null>(null)
 
   const loadOrders = async () => {
     setIsRefreshing(true)
@@ -59,12 +60,10 @@ export default function AdminInvoicesPage() {
   const filteredOrders = orders.filter((order) => {
     const orderDateStr = order.createdAt ? order.createdAt.split('T')[0] : ''
 
-    // Date range check
     let matchesDate = true
     if (startDate && orderDateStr < startDate) matchesDate = false
     if (endDate && orderDateStr > endDate) matchesDate = false
 
-    // Search query check
     const query = searchQuery.toLowerCase().trim()
     let matchesSearch = true
     if (query) {
@@ -77,7 +76,7 @@ export default function AdminInvoicesPage() {
     return matchesDate && matchesSearch
   })
 
-  // Summary statistics for filtered orders
+  // Summary statistics
   const totalFilteredCount = filteredOrders.length
   const totalRevenue = filteredOrders.reduce((sum, o) => sum + (o.total || 0), 0)
   const totalTax = filteredOrders.reduce((sum, o) => sum + (o.tax || 0), 0)
@@ -85,7 +84,6 @@ export default function AdminInvoicesPage() {
   const cashTotal = filteredOrders.filter(o => o.paymentMethod === 'cash').reduce((sum, o) => sum + (o.total || 0), 0)
   const cardTotal = filteredOrders.filter(o => o.paymentMethod === 'card').reduce((sum, o) => sum + (o.total || 0), 0)
 
-  // Quick preset handler
   const handlePreset = (preset: 'today' | 'week' | 'month' | 'all') => {
     const now = new Date()
     setEndDate(now.toISOString().split('T')[0])
@@ -103,11 +101,79 @@ export default function AdminInvoicesPage() {
     }
   }
 
+  // Generate & Download PDF using jsPDF
+  const exportPDFReport = () => {
+    const doc = new jsPDF()
+
+    // Title & Header
+    doc.setFontSize(18)
+    doc.setTextColor(107, 62, 46) // Primary theme color #6b3e2e
+    doc.text('COFFEE KING SURAT', 14, 20)
+
+    doc.setFontSize(11)
+    doc.setTextColor(80, 80, 80)
+    doc.text('Date-Filtered Sales & Invoices Summary Report', 14, 27)
+
+    doc.setFontSize(9)
+    doc.text(`Period: ${startDate} to ${endDate}`, 14, 33)
+    doc.text(`Generated On: ${new Date().toLocaleString()}`, 14, 38)
+    doc.text(`Total Invoices: ${totalFilteredCount} | Total Revenue: INR ${totalRevenue.toFixed(2)}`, 14, 43)
+
+    // Table Data
+    const tableData = filteredOrders.map((o) => [
+      o.orderNumber,
+      new Date(o.createdAt).toLocaleDateString(),
+      o.customerName,
+      o.customerPhone,
+      o.orderType.toUpperCase(),
+      o.paymentMethod.toUpperCase(),
+      `INR ${(o.subtotal || 0).toFixed(2)}`,
+      `INR ${(o.tax || 0).toFixed(2)}`,
+      `INR ${(o.total || 0).toFixed(2)}`
+    ])
+
+    autoTable(doc, {
+      startY: 48,
+      head: [['Invoice #', 'Date', 'Customer', 'Phone', 'Type', 'Payment', 'Subtotal', 'Tax', 'Total']],
+      body: tableData,
+      headStyles: { fillColor: [107, 62, 46], textColor: [255, 255, 255], fontStyle: 'bold' },
+      styles: { fontSize: 8, cellPadding: 3 },
+      alternateRowStyles: { fillColor: [250, 246, 240] }
+    })
+
+    doc.save(`CoffeeKing_Invoices_${startDate}_to_${endDate}.pdf`)
+  }
+
+  // Generate & Export Excel (.xlsx) using SheetJS
+  const exportExcelReport = () => {
+    const excelData = filteredOrders.map((o) => ({
+      'Invoice ID': o.id,
+      'Order Number': o.orderNumber,
+      'Customer Name': o.customerName,
+      'Customer Phone': o.customerPhone,
+      'Customer Email': o.customerEmail || '',
+      'Order Type': o.orderType.toUpperCase(),
+      'Table Number': o.tableNumber || 'N/A',
+      'Date & Time': new Date(o.createdAt).toLocaleString(),
+      'Items Count': o.items?.length || 0,
+      'Subtotal (INR)': o.subtotal || 0,
+      'Tax (INR)': o.tax || 0,
+      'Grand Total (INR)': o.total || 0,
+      'Payment Method': o.paymentMethod.toUpperCase(),
+      'Order Status': o.status.toUpperCase()
+    }))
+
+    const worksheet = XLSX.utils.json_to_sheet(excelData)
+    const workbook = XLSX.utils.book_new()
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Invoices Summary')
+
+    XLSX.writeFile(workbook, `CoffeeKing_Invoices_${startDate}_to_${endDate}.xlsx`)
+  }
+
   // Print single order invoice
   const printSingleInvoice = (order: Order) => {
-    const windowUrl = ''
     const windowName = `Invoice_${order.orderNumber}`
-    const printWindow = window.open(windowUrl, windowName, 'width=800,height=900')
+    const printWindow = window.open('', windowName, 'width=800,height=900')
 
     if (!printWindow) return
 
@@ -228,7 +294,7 @@ export default function AdminInvoicesPage() {
             .brand { font-size: 26px; font-weight: bold; color: #6b3e2e; }
             .subtitle { font-size: 13px; color: #666; }
             .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; margin-bottom: 25px; }
-            .stat-card { background: #fdfaf6; border: 1px solid #e8dec8; padding: 15px; rounded: 8px; border-radius: 8px; }
+            .stat-card { background: #fdfaf6; border: 1px solid #e8dec8; padding: 15px; border-radius: 8px; }
             .stat-card .label { font-size: 11px; font-weight: bold; text-transform: uppercase; color: #888; }
             .stat-card .value { font-size: 20px; font-weight: bold; color: #6b3e2e; margin-top: 4px; }
             table { width: 100%; border-collapse: collapse; margin-top: 15px; }
@@ -330,17 +396,34 @@ export default function AdminInvoicesPage() {
             Invoices & Sales Reports
           </h1>
           <p className="text-foreground/70 text-sm mt-1">
-            Filter orders date-wise to view, generate, and print individual or summary invoices.
+            Filter orders date-wise to view, export PDF/Excel, and print individual or summary invoices.
           </p>
         </div>
 
-        <div className="flex items-center gap-2">
+        {/* Action Buttons: PDF, Excel, Print */}
+        <div className="flex flex-wrap items-center gap-2">
+          <button
+            onClick={exportPDFReport}
+            className="inline-flex items-center gap-2 px-3.5 py-2 bg-rose-700 text-white rounded-lg font-bold text-xs shadow-md hover:bg-rose-800 transition-transform active:scale-95"
+          >
+            <Download className="w-4 h-4" />
+            Download PDF
+          </button>
+
+          <button
+            onClick={exportExcelReport}
+            className="inline-flex items-center gap-2 px-3.5 py-2 bg-emerald-700 text-white rounded-lg font-bold text-xs shadow-md hover:bg-emerald-800 transition-transform active:scale-95"
+          >
+            <FileSpreadsheet className="w-4 h-4" />
+            Export Excel
+          </button>
+
           <button
             onClick={printFilteredSummaryReport}
-            className="inline-flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg font-bold text-xs shadow-md hover:bg-primary/90 transition-transform active:scale-95"
+            className="inline-flex items-center gap-2 px-3.5 py-2 bg-primary text-primary-foreground rounded-lg font-bold text-xs shadow-md hover:bg-primary/90 transition-transform active:scale-95"
           >
             <Printer className="w-4 h-4" />
-            Print Date Filtered Summary Report
+            Print Report
           </button>
 
           <button

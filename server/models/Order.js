@@ -38,7 +38,8 @@ const orderSchema = new mongoose.Schema({
     enum: ['cash', 'card', 'upi'],
     default: 'cash' 
   },
-  specialInstructions: { type: String, default: '' }
+  specialInstructions: { type: String, default: '' },
+  isSeen: { type: Boolean, default: false }
 }, {
   timestamps: true
 });

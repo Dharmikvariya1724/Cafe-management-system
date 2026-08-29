@@ -17,7 +17,11 @@ function getAuthHeader(): Record<string, string> {
 
 export async function fetchFromAPI<T>(endpoint: string, options: RequestInit = {}): Promise<T | null> {
   try {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 3000);
+
     const res = await fetch(`${API_BASE_URL}${endpoint}`, {
+      signal: options.signal || controller.signal,
       headers: {
         'Content-Type': 'application/json',
         ...getAuthHeader(),
@@ -25,6 +29,7 @@ export async function fetchFromAPI<T>(endpoint: string, options: RequestInit = {
       },
       ...options,
     });
+    clearTimeout(timeoutId);
 
     if (!res.ok) {
       const errorData = await res.json().catch(() => ({}));
@@ -32,8 +37,10 @@ export async function fetchFromAPI<T>(endpoint: string, options: RequestInit = {
     }
 
     return await res.json();
-  } catch (error) {
-    console.warn(`[API Client Warning] Backend request failed (${endpoint}):`, error);
+  } catch (error: any) {
+    if (error?.name !== 'AbortError') {
+      console.warn(`[API Client Warning] Backend request failed (${endpoint}):`, error?.message || error);
+    }
     return null;
   }
 }
@@ -80,9 +87,15 @@ export const api = {
 
   // Order APIs
   getOrders: () => fetchFromAPI<any[]>('/orders'),
+  getUnseenOrdersCount: () => fetchFromAPI<{ unseenCount: number }>('/orders/unseen-count'),
+  markOrdersSeen: (orderIds?: string[]) => fetchFromAPI('/orders/mark-seen', { method: 'PATCH', body: JSON.stringify({ orderIds }) }),
   createOrder: (data: any) => fetchFromAPI('/orders', { method: 'POST', body: JSON.stringify(data) }),
   updateOrderStatus: (id: string, status: string) => fetchFromAPI(`/orders/${id}/status`, { method: 'PATCH', body: JSON.stringify({ status }) }),
   deleteOrder: (id: string) => fetchFromAPI(`/orders/${id}`, { method: 'DELETE' }),
+
+  // Settings APIs
+  getSettings: () => fetchFromAPI<any>('/settings'),
+  updateSettings: (data: any) => fetchFromAPI('/settings', { method: 'PUT', body: JSON.stringify(data) }),
 
   // Table APIs
   getTables: () => fetchFromAPI<any[]>('/tables'),

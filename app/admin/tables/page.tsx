@@ -222,13 +222,82 @@ export default function AdminTablesPage() {
 
   const downloadQrCode = () => {
     if (!qrDataUrl || !qrModalTable) return
-    const link = document.createElement('a')
-    const fileName = `QR-CoffeeKing-${qrModalTable.tableNumber.replace(/\s+/g, '-')}.png`
-    link.href = qrDataUrl
-    link.download = fileName
-    document.body.appendChild(link)
-    link.click()
-    document.body.removeChild(link)
+
+    const canvas = document.createElement('canvas')
+    const ctx = canvas.getContext('2d')
+    if (!ctx) return
+
+    // Set canvas dimensions
+    const width = 600
+    const height = 750
+    canvas.width = width
+    canvas.height = height
+
+    // Background Card
+    ctx.fillStyle = '#ffffff'
+    ctx.fillRect(0, 0, width, height)
+
+    // Outer Border
+    ctx.lineWidth = 12
+    ctx.strokeStyle = '#6b3e2e'
+    ctx.strokeRect(20, 20, width - 40, height - 40)
+
+    // Inner Accent Border
+    ctx.lineWidth = 2
+    ctx.strokeStyle = '#c9a876'
+    ctx.strokeRect(32, 32, width - 64, height - 64)
+
+    // Header Title
+    ctx.fillStyle = '#6b3e2e'
+    ctx.font = 'bold 36px "Segoe UI", sans-serif'
+    ctx.textAlign = 'center'
+    ctx.fillText('☕ COFFEE KING SURAT', width / 2, 90)
+
+    ctx.fillStyle = '#666666'
+    ctx.font = '16px "Segoe UI", sans-serif'
+    ctx.fillText('Surat\'s Most Lively Café & Lounge', width / 2, 120)
+
+    // QR Image
+    const img = new Image()
+    img.crossOrigin = 'anonymous'
+    img.onload = () => {
+      // Draw white container for QR
+      ctx.fillStyle = '#faf6f0'
+      ctx.fillRect(100, 150, 400, 400)
+      ctx.strokeStyle = '#e8dec8'
+      ctx.lineWidth = 4
+      ctx.strokeRect(100, 150, 400, 400)
+
+      // Draw QR image inside
+      ctx.drawImage(img, 120, 170, 360, 360)
+
+      // Dynamic Table Number
+      ctx.fillStyle = '#6b3e2e'
+      ctx.font = 'extrabold 34px "Segoe UI", sans-serif'
+      ctx.fillText(qrModalTable.tableNumber.toUpperCase(), width / 2, 600)
+
+      if (qrModalTable.name) {
+        ctx.fillStyle = '#888888'
+        ctx.font = '16px "Segoe UI", sans-serif'
+        ctx.fillText(`📍 ${qrModalTable.name}`, width / 2, 630)
+      }
+
+      // Footer Instructions
+      ctx.fillStyle = '#166534'
+      ctx.font = 'bold 18px "Segoe UI", sans-serif'
+      ctx.fillText('📱 Scan to View Menu & Place Order', width / 2, 680)
+
+      // Trigger Download
+      const pngUri = canvas.toDataURL('image/png')
+      const link = document.createElement('a')
+      const fileName = `${qrModalTable.tableNumber.toLowerCase().replace(/\s+/g, '-')}-qr.png`
+      link.href = pngUri
+      link.download = fileName
+      document.body.appendChild(link)
+      link.click()
+      document.body.removeChild(link)
+    }
+    img.src = qrDataUrl
   }
 
   const filteredTables = tables.filter((t) => {

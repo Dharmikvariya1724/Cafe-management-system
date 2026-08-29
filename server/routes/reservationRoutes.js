@@ -30,12 +30,22 @@ router.post('/', async (req, res) => {
 router.patch('/:id/status', async (req, res) => {
   try {
     const { status } = req.body;
-    const updated = await Reservation.findOneAndUpdate(
-      { id: req.params.id },
-      { status },
-      { new: true, runValidators: true }
-    );
-    if (!updated) return res.status(404).json({ message: 'Reservation not found' });
+    const existing = await Reservation.findOne({ id: req.params.id });
+    if (!existing) return res.status(404).json({ message: 'Reservation not found' });
+
+    const isNewlyConfirmed = status === 'confirmed' && existing.status !== 'confirmed';
+
+    existing.status = status;
+    const updated = await existing.save();
+
+    if (isNewlyConfirmed) {
+      const { sendReservationConfirmationEmail } = require('../utils/emailService');
+      // Fire and forget or log result asynchronously
+      sendReservationConfirmationEmail(updated).catch(err => {
+        console.error('Async email error:', err);
+      });
+    }
+
     res.json(updated);
   } catch (error) {
     res.status(400).json({ error: error.message });

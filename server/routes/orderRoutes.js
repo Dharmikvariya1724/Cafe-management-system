@@ -2,6 +2,31 @@ const express = require('express');
 const router = express.Router();
 const Order = require('../models/Order');
 
+// GET unseen orders count
+router.get('/unseen-count', async (req, res) => {
+  try {
+    const count = await Order.countDocuments({ isSeen: false });
+    res.json({ unseenCount: count });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// PATCH mark all or specific orders as seen
+router.patch('/mark-seen', async (req, res) => {
+  try {
+    const { orderIds } = req.body;
+    if (Array.isArray(orderIds) && orderIds.length > 0) {
+      await Order.updateMany({ id: { $in: orderIds } }, { isSeen: true });
+    } else {
+      await Order.updateMany({ isSeen: false }, { isSeen: true });
+    }
+    res.json({ message: 'Orders marked as seen' });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
 // GET all orders
 router.get('/', async (req, res) => {
   try {

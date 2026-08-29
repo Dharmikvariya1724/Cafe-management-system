@@ -36,6 +36,8 @@ export interface Review {
   verified: boolean
   orderId?: string
   orderNumber?: string
+  role?: string
+  location?: string
 }
 
 export interface AdminProfile {

@@ -1,14 +1,12 @@
 import { Navigation } from '@/components/Navigation'
 import { Footer } from '@/components/Footer'
 import { Hero } from '@/components/Hero'
-import { MenuCard } from '@/components/MenuCard'
 import { OutletsSection } from '@/components/OutletsSection'
 import { CkVibeGallery } from '@/components/CkVibeGallery'
 import { HomeTestimonials } from '@/components/HomeTestimonials'
-import { menuItems } from '@/lib/data'
 import { BUSINESS_NAME, KINGCOINS_REWARDS } from '@/lib/constants'
 import Link from 'next/link'
-import { ArrowRight, Gift, MapPin, Store, Utensils, Star } from 'lucide-react'
+import { ArrowRight, Gift, Store } from 'lucide-react'
 import type { Metadata } from 'next'
 
 export const metadata: Metadata = {
@@ -18,8 +16,6 @@ export const metadata: Metadata = {
 }
 
 export default function Home() {
-  const featuredMenu = menuItems.filter(item => item.popular).slice(0, 6)
-
   return (
     <main className="min-h-screen bg-background">
       <Navigation />
@@ -28,39 +24,7 @@ export default function Home() {
       {/* 1. Coffee King Lounge Outlets in Surat Section */}
       <OutletsSection />
 
-      {/* 2. Popular Items & Our Menu Section */}
-      <section className="py-20 bg-background border-b border-border">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-12 space-y-2">
-            <span className="text-xs uppercase font-extrabold tracking-widest text-primary bg-primary/10 px-3 py-1 rounded-full border border-primary/20">
-              MUST TRY SELECTION
-            </span>
-            <h2 className="text-4xl sm:text-5xl font-heading font-extrabold text-foreground">
-              Popular <span className="italic text-primary">Items</span>
-            </h2>
-            <p className="text-sm sm:text-base text-foreground/70 max-w-2xl mx-auto">
-              Discover our most loved coffees, breakfast treats, and signature sizzler bowls.
-            </p>
-          </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {featuredMenu.map(item => (
-              <MenuCard key={item.id} item={item} />
-            ))}
-          </div>
-
-          <div className="mt-12 text-center">
-            <Link
-              href="/menu"
-              className="inline-flex items-center gap-2 bg-primary text-primary-foreground px-8 py-3.5 rounded-xl font-bold hover:bg-primary/90 transition-all shadow-md hover:scale-105 active:scale-95"
-            >
-              <Utensils className="w-4 h-4" />
-              View Full Menu & Order
-              <ArrowRight className="w-4 h-4" />
-            </Link>
-          </div>
-        </div>
-      </section>
 
       {/* 3. Our Space & Gallery (The CK Vibe) Section */}
       <CkVibeGallery />

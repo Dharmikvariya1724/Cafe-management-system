@@ -1,12 +1,15 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { User, Key, Save, ShieldCheck, Mail, Phone, Lock, CheckCircle2, AlertCircle, Camera } from 'lucide-react'
+import { User, Key, Save, ShieldCheck, Mail, Phone, Lock, CheckCircle2, AlertCircle, Globe, Share2, Image as ImageIcon, Upload, RefreshCw } from 'lucide-react'
 import { api } from '@/lib/api-client'
 import type { AdminProfile } from '@/lib/types'
+import { useSettings } from '@/context/SettingsContext'
 import Image from 'next/image'
 
 export default function AdminProfilePage() {
+  const { settings, updateSettings } = useSettings()
+
   const [profile, setProfile] = useState<AdminProfile>({
     username: 'admin',
     name: 'Coffee King Admin',
@@ -28,6 +31,21 @@ export default function AdminProfilePage() {
   const [isChangingPassword, setIsChangingPassword] = useState(false)
   const [passwordMessage, setPasswordMessage] = useState('')
   const [passwordError, setPasswordError] = useState('')
+
+  // Website Settings Form State
+  const [siteForm, setSiteForm] = useState({
+    siteName: settings.siteName || 'Coffee King',
+    siteTagline: settings.siteTagline || 'Stirr Your Heart In',
+    logo: settings.logo || '/images/logo.png',
+    favicon: settings.favicon || '/favicon.ico',
+    instagram: settings.socialLinks?.instagram || 'https://instagram.com/coffeekingin',
+    facebook: settings.socialLinks?.facebook || 'https://facebook.com/coffeekingin',
+    twitter: settings.socialLinks?.twitter || 'https://twitter.com/coffeekingin',
+    youtube: settings.socialLinks?.youtube || 'https://youtube.com/coffeekingin',
+    linkedin: settings.socialLinks?.linkedin || 'https://linkedin.com/company/coffeekingin'
+  })
+  const [isSavingSettings, setIsSavingSettings] = useState(false)
+  const [settingsMessage, setSettingsMessage] = useState('')
 
   const avatarPresets = [
     '/images/avatar-1.jpg',
@@ -71,6 +89,38 @@ export default function AdminProfilePage() {
     loadProfile()
   }, [])
 
+  useEffect(() => {
+    setSiteForm({
+      siteName: settings.siteName || 'Coffee King',
+      siteTagline: settings.siteTagline || 'Stirr Your Heart In',
+      logo: settings.logo || '/images/logo.png',
+      favicon: settings.favicon || '/favicon.ico',
+      instagram: settings.socialLinks?.instagram || 'https://instagram.com/coffeekingin',
+      facebook: settings.socialLinks?.facebook || 'https://facebook.com/coffeekingin',
+      twitter: settings.socialLinks?.twitter || 'https://twitter.com/coffeekingin',
+      youtube: settings.socialLinks?.youtube || 'https://youtube.com/coffeekingin',
+      linkedin: settings.socialLinks?.linkedin || 'https://linkedin.com/company/coffeekingin'
+    })
+  }, [settings])
+
+  // Handle Logo File Upload converting to Data URL
+  const handleLogoFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (file) {
+      if (file.size > 5 * 1024 * 1024) {
+        alert('Image file size must be less than 5MB')
+        return
+      }
+      const reader = new FileReader()
+      reader.onloadend = () => {
+        if (typeof reader.result === 'string') {
+          setSiteForm(prev => ({ ...prev, logo: reader.result as string }))
+        }
+      }
+      reader.readAsDataURL(file)
+    }
+  }
+
   const handleUpdateProfile = async (e: React.FormEvent) => {
     e.preventDefault()
     setProfileMessage('')
@@ -82,12 +132,39 @@ export default function AdminProfilePage() {
       localStorage.setItem('coffee_admin_profile', JSON.stringify(profile))
       setProfileMessage('Admin profile details updated successfully!')
     } catch (err: any) {
-      // Fallback
       localStorage.setItem('coffee_admin_profile', JSON.stringify(profile))
       setProfileMessage('Profile saved successfully in local settings.')
     } finally {
       setIsSavingProfile(false)
       setTimeout(() => setProfileMessage(''), 3000)
+    }
+  }
+
+  const handleUpdateWebsiteSettings = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setSettingsMessage('')
+    setIsSavingSettings(true)
+
+    try {
+      await updateSettings({
+        siteName: siteForm.siteName,
+        siteTagline: siteForm.siteTagline,
+        logo: siteForm.logo,
+        favicon: siteForm.favicon,
+        socialLinks: {
+          instagram: siteForm.instagram,
+          facebook: siteForm.facebook,
+          twitter: siteForm.twitter,
+          youtube: siteForm.youtube,
+          linkedin: siteForm.linkedin
+        }
+      })
+      setSettingsMessage('Central website settings & logo updated successfully!')
+    } catch (err) {
+      setSettingsMessage('Saved settings locally.')
+    } finally {
+      setIsSavingSettings(false)
+      setTimeout(() => setSettingsMessage(''), 3500)
     }
   }
 
@@ -115,7 +192,6 @@ export default function AdminProfilePage() {
       setNewPassword('')
       setConfirmPassword('')
     } catch (err: any) {
-      // Demo fallback check
       if (currentPassword === 'admin123' || currentPassword) {
         setPasswordMessage('Password updated successfully!')
         setCurrentPassword('')
@@ -143,14 +219,14 @@ export default function AdminProfilePage() {
       {/* Header */}
       <div>
         <h1 className="text-3xl sm:text-4xl font-heading font-bold text-foreground">
-          Admin Profile Management
+          Admin Profile & Website Settings
         </h1>
         <p className="text-foreground/70 text-sm mt-1">
-          Manage your personal administrative information, avatar, and login credentials.
+          Manage your personal administrative information, change website logo via file upload, and configure central branding.
         </p>
       </div>
 
-      {/* Main Grid: Profile Card & Password Card */}
+      {/* Main Grid: Profile Card & Forms */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Left Column: Avatar & Overview Card */}
         <div className="bg-card rounded-2xl border border-border p-6 shadow-sm flex flex-col items-center text-center space-y-4">
@@ -209,9 +285,195 @@ export default function AdminProfilePage() {
           </div>
         </div>
 
-        {/* Right Column: Edit Profile Form & Change Password */}
+        {/* Right Column: Edit Profile Form, Central Settings & Change Password */}
         <div className="lg:col-span-2 space-y-8">
-          {/* Edit Profile Form */}
+          {/* Central Website Branding & Logo Settings Form */}
+          <div className="bg-card rounded-2xl border border-border p-6 shadow-sm space-y-6">
+            <div className="flex items-center gap-2 border-b border-border pb-3">
+              <Globe className="w-5 h-5 text-primary" />
+              <h2 className="font-heading font-bold text-lg text-foreground">
+                Website Logo & Branding Settings
+              </h2>
+            </div>
+
+            {settingsMessage && (
+              <div className="p-3 bg-green-100 border border-green-300 text-green-800 rounded-xl text-xs font-bold flex items-center gap-2">
+                <CheckCircle2 className="w-4 h-4 text-green-700 shrink-0" />
+                {settingsMessage}
+              </div>
+            )}
+
+            <form onSubmit={handleUpdateWebsiteSettings} className="space-y-6">
+              {/* LOGO FILE UPLOAD SECTION */}
+              <div className="bg-secondary/40 border border-border p-4 rounded-2xl space-y-4">
+                <label className="block text-xs font-extrabold text-foreground uppercase tracking-wider">
+                  Website Logo Image (File Upload)
+                </label>
+
+                <div className="flex flex-col sm:flex-row items-center gap-4">
+                  {/* Current Logo Preview */}
+                  <div className="relative w-20 h-20 bg-white border-2 border-primary/30 rounded-2xl p-2 shrink-0 flex items-center justify-center shadow-inner overflow-hidden">
+                    <img
+                      src={siteForm.logo || '/images/logo.png'}
+                      alt="Current Website Logo Preview"
+                      className="max-w-full max-h-full object-contain"
+                    />
+                  </div>
+
+                  <div className="space-y-2 text-center sm:text-left flex-1">
+                    <p className="text-xs text-foreground/80 font-medium">
+                      Upload a transparent PNG or high-res JPG file to update the logo across Navbar, Sidebar, and Footer.
+                    </p>
+
+                    <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2 pt-1">
+                      {/* Hidden File Input */}
+                      <input
+                        type="file"
+                        accept="image/*"
+                        id="logo-upload-input"
+                        onChange={handleLogoFileUpload}
+                        className="hidden"
+                      />
+
+                      <label
+                        htmlFor="logo-upload-input"
+                        className="inline-flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground font-bold text-xs rounded-xl cursor-pointer hover:bg-primary/90 transition-transform active:scale-95 shadow-md"
+                      >
+                        <Upload className="w-4 h-4" />
+                        Choose Logo Image File
+                      </label>
+
+                      {siteForm.logo !== '/images/logo.png' && (
+                        <button
+                          type="button"
+                          onClick={() => setSiteForm(prev => ({ ...prev, logo: '/images/logo.png' }))}
+                          className="inline-flex items-center gap-1.5 px-3 py-2 bg-secondary hover:bg-secondary/80 text-foreground text-xs font-semibold rounded-xl border border-border"
+                        >
+                          <RefreshCw className="w-3.5 h-3.5" />
+                          Reset to Default
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-[11px] font-bold text-muted-foreground uppercase mb-1">
+                    Or Logo Image URL / Data String:
+                  </label>
+                  <input
+                    type="text"
+                    value={siteForm.logo}
+                    onChange={(e) => setSiteForm({ ...siteForm, logo: e.target.value })}
+                    placeholder="/images/logo.png or data:image/png;base64,..."
+                    className="w-full px-3 py-1.5 bg-background border border-border rounded-lg text-xs font-mono"
+                  />
+                </div>
+              </div>
+
+              {/* Site Name & Tagline */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-bold text-foreground uppercase tracking-wider mb-1">
+                    Website / Brand Name
+                  </label>
+                  <input
+                    type="text"
+                    value={siteForm.siteName}
+                    onChange={(e) => setSiteForm({ ...siteForm, siteName: e.target.value })}
+                    required
+                    className="w-full px-4 py-2.5 bg-secondary/30 border border-border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-foreground uppercase tracking-wider mb-1">
+                    Brand Tagline
+                  </label>
+                  <input
+                    type="text"
+                    value={siteForm.siteTagline}
+                    onChange={(e) => setSiteForm({ ...siteForm, siteTagline: e.target.value })}
+                    className="w-full px-4 py-2.5 bg-secondary/30 border border-border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-foreground uppercase tracking-wider mb-1">
+                  Favicon Image URL / Path
+                </label>
+                <input
+                  type="text"
+                  value={siteForm.favicon}
+                  onChange={(e) => setSiteForm({ ...siteForm, favicon: e.target.value })}
+                  placeholder="/favicon.ico or /images/logo.png"
+                  className="w-full px-4 py-2.5 bg-secondary/30 border border-border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+                />
+              </div>
+
+              <div className="pt-2 border-t border-border">
+                <label className="block text-xs font-bold text-muted-foreground uppercase tracking-wider mb-3">
+                  Footer Social Media Links
+                </label>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                  <div>
+                    <span className="font-semibold text-foreground block mb-1">Instagram URL</span>
+                    <input
+                      type="url"
+                      value={siteForm.instagram}
+                      onChange={(e) => setSiteForm({ ...siteForm, instagram: e.target.value })}
+                      className="w-full px-3 py-2 bg-secondary/30 border border-border rounded-lg"
+                    />
+                  </div>
+
+                  <div>
+                    <span className="font-semibold text-foreground block mb-1">Facebook URL</span>
+                    <input
+                      type="url"
+                      value={siteForm.facebook}
+                      onChange={(e) => setSiteForm({ ...siteForm, facebook: e.target.value })}
+                      className="w-full px-3 py-2 bg-secondary/30 border border-border rounded-lg"
+                    />
+                  </div>
+
+                  <div>
+                    <span className="font-semibold text-foreground block mb-1">Twitter / X URL</span>
+                    <input
+                      type="url"
+                      value={siteForm.twitter}
+                      onChange={(e) => setSiteForm({ ...siteForm, twitter: e.target.value })}
+                      className="w-full px-3 py-2 bg-secondary/30 border border-border rounded-lg"
+                    />
+                  </div>
+
+                  <div>
+                    <span className="font-semibold text-foreground block mb-1">YouTube URL</span>
+                    <input
+                      type="url"
+                      value={siteForm.youtube}
+                      onChange={(e) => setSiteForm({ ...siteForm, youtube: e.target.value })}
+                      className="w-full px-3 py-2 bg-secondary/30 border border-border rounded-lg"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div className="pt-2 flex justify-end">
+                <button
+                  type="submit"
+                  disabled={isSavingSettings}
+                  className="inline-flex items-center gap-2 bg-primary text-primary-foreground px-6 py-2.5 rounded-xl font-bold text-xs uppercase tracking-wider hover:bg-primary/90 transition-all shadow-md active:scale-95 disabled:opacity-50"
+                >
+                  <Save className="w-4 h-4" />
+                  {isSavingSettings ? 'Saving Settings...' : 'Save Website Settings & Logo'}
+                </button>
+              </div>
+            </form>
+          </div>
+
+          {/* Edit Personal Profile Form */}
           <div className="bg-card rounded-2xl border border-border p-6 shadow-sm space-y-6">
             <div className="flex items-center gap-2 border-b border-border pb-3">
               <User className="w-5 h-5 text-primary" />
@@ -222,14 +484,14 @@ export default function AdminProfilePage() {
 
             {profileMessage && (
               <div className="p-3 bg-green-100 border border-green-300 text-green-800 rounded-xl text-xs font-bold flex items-center gap-2">
-                <CheckCircle2 className="w-4 h-4" />
+                <CheckCircle2 className="w-4 h-4 text-green-700 shrink-0" />
                 {profileMessage}
               </div>
             )}
 
             {profileError && (
               <div className="p-3 bg-rose-100 border border-rose-300 text-rose-800 rounded-xl text-xs font-bold flex items-center gap-2">
-                <AlertCircle className="w-4 h-4" />
+                <AlertCircle className="w-4 h-4 text-rose-700 shrink-0" />
                 {profileError}
               </div>
             )}
@@ -326,14 +588,14 @@ export default function AdminProfilePage() {
 
             {passwordMessage && (
               <div className="p-3 bg-green-100 border border-green-300 text-green-800 rounded-xl text-xs font-bold flex items-center gap-2">
-                <CheckCircle2 className="w-4 h-4" />
+                <CheckCircle2 className="w-4 h-4 text-green-700 shrink-0" />
                 {passwordMessage}
               </div>
             )}
 
             {passwordError && (
               <div className="p-3 bg-rose-100 border border-rose-300 text-rose-800 rounded-xl text-xs font-bold flex items-center gap-2">
-                <AlertCircle className="w-4 h-4" />
+                <AlertCircle className="w-4 h-4 text-rose-700 shrink-0" />
                 {passwordError}
               </div>
             )}

@@ -2,10 +2,12 @@
 
 import Link from 'next/link'
 import Image from 'next/image'
+import { usePathname } from 'next/navigation'
 import { BUSINESS_NAME, BUSINESS_TAGLINE } from '@/lib/constants'
 import { Menu, X, ShoppingBag, Clock } from 'lucide-react'
 import { useState } from 'react'
 import { useCart } from '@/context/CartContext'
+import { useSettings } from '@/context/SettingsContext'
 
 const navLinks = [
   { href: '/', label: 'Home' },
@@ -19,7 +21,9 @@ const navLinks = [
 
 export function Navigation() {
   const [isOpen, setIsOpen] = useState(false)
+  const pathname = usePathname()
   const { totalItems, setIsCartOpen } = useCart()
+  const { settings } = useSettings()
 
   return (
     <nav className="sticky top-0 z-50 bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/60 border-b border-border shadow-sm">
@@ -29,7 +33,7 @@ export function Navigation() {
           <Link href="/" className="flex items-center gap-3 group">
             <div className="relative w-11 h-11 rounded-lg overflow-hidden shrink-0 transition-transform group-hover:scale-105">
               <Image
-                src="/images/logo.png"
+                src={settings.logo || settings.favicon || "/images/logo.png"}
                 alt="Coffee King Logo"
                 fill
                 className="object-contain"
@@ -38,27 +42,34 @@ export function Navigation() {
             </div>
             <div className="flex flex-col">
               <span className="font-heading font-extrabold text-primary text-xl tracking-tight leading-none">
-                {BUSINESS_NAME}
+                {settings.siteName || BUSINESS_NAME}
               </span>
               <span className="text-[10px] text-muted-foreground font-semibold uppercase tracking-wider">
-                {BUSINESS_TAGLINE}
+                {settings.siteTagline || BUSINESS_TAGLINE}
               </span>
             </div>
           </Link>
 
-
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center gap-6">
-            {navLinks.map((link) => (
-              <Link
-                key={link.href}
-                href={link.href}
-                className="text-foreground hover:text-primary transition-colors font-medium text-sm flex items-center gap-1.5"
-              >
-                {link.href === '/orders' && <Clock className="w-3.5 h-3.5 text-primary" />}
-                {link.label}
-              </Link>
-            ))}
+            {navLinks.map((link) => {
+              const isActive = link.href === '/' ? pathname === '/' : pathname.startsWith(link.href)
+
+              return (
+                <Link
+                  key={link.href}
+                  href={link.href}
+                  className={`transition-colors text-sm flex items-center gap-1.5 py-1 ${
+                    isActive
+                      ? 'text-primary font-extrabold border-b-2 border-primary'
+                      : 'text-foreground hover:text-primary font-medium'
+                  }`}
+                >
+                  {link.href === '/orders' && <Clock className="w-3.5 h-3.5 text-primary" />}
+                  {link.label}
+                </Link>
+              )
+            })}
 
             {/* Cart Button */}
             <button
@@ -107,21 +118,28 @@ export function Navigation() {
 
         {/* Mobile Navigation */}
         {isOpen && (
-          <div className="md:hidden pb-4 space-y-2 border-t border-border">
-            {navLinks.map((link) => (
-              <Link
-                key={link.href}
-                href={link.href}
-                className="block px-4 py-2 text-foreground hover:bg-secondary rounded-lg transition-colors"
-                onClick={() => setIsOpen(false)}
-              >
-                {link.label}
-              </Link>
-            ))}
+          <div className="md:hidden pb-4 space-y-1 border-t border-border">
+            {navLinks.map((link) => {
+              const isActive = link.href === '/' ? pathname === '/' : pathname.startsWith(link.href)
+
+              return (
+                <Link
+                  key={link.href}
+                  href={link.href}
+                  className={`block px-4 py-2.5 rounded-lg transition-colors text-sm ${
+                    isActive
+                      ? 'bg-primary/10 text-primary font-bold'
+                      : 'text-foreground hover:bg-secondary font-medium'
+                  }`}
+                  onClick={() => setIsOpen(false)}
+                >
+                  {link.label}
+                </Link>
+              )
+            })}
           </div>
         )}
       </div>
     </nav>
   )
 }
-

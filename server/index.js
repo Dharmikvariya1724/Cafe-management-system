@@ -61,6 +61,7 @@ app.use('/api/messages', require('./routes/contactRoutes'));
 app.use('/api/reviews', require('./routes/reviewRoutes'));
 app.use('/api/gallery', require('./routes/galleryRoutes'));
 app.use('/api/newsletter', require('./routes/newsletterRoutes'));
+app.use('/api/settings', require('./routes/settingsRoutes'));
 
 // 404 Route Handler
 app.use((req, res) => {

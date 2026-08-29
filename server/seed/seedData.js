@@ -11,9 +11,28 @@ const Order = require('../models/Order');
 const Reservation = require('../models/Reservation');
 const ContactMessage = require('../models/ContactMessage');
 const Newsletter = require('../models/Newsletter');
+const Settings = require('../models/Settings');
 
 // Load environment variables from server/.env
 dotenv.config({ path: path.join(__dirname, '../.env') });
+
+const settingsData = {
+  siteName: 'Coffee King',
+  siteTagline: 'Stirr Your Heart In',
+  logo: '/images/logo.png',
+  favicon: '/favicon.ico',
+  adminName: 'Coffee King Admin',
+  adminEmail: 'admin@coffeeking.com',
+  adminPhone: '+91 98765 43210',
+  adminAvatar: '/images/avatar-1.jpg',
+  socialLinks: {
+    instagram: 'https://instagram.com/coffeekingin',
+    facebook: 'https://facebook.com/coffeekingin',
+    twitter: 'https://twitter.com/coffeekingin',
+    youtube: 'https://youtube.com/coffeekingin',
+    linkedin: 'https://linkedin.com/company/coffeekingin'
+  }
+};
 
 const menuItems = [
   { id: '1', name: 'Espresso', category: 'espresso', price: 120.00, description: 'Rich and intense single or double shot of freshly pulled espresso', image: '/images/espresso.png', available: true, popular: true },
@@ -93,7 +112,7 @@ const reviews = [
     rating: 4,
     text: 'Iced latte was very refreshing. Nice music and cozy seating.',
     date: '2026-08-24',
-    verified: false, // Unverified - pending admin checkbox approval!
+    verified: false,
     orderNumber: '#CC-1005'
   }
 ];
@@ -129,6 +148,7 @@ const orders = [
     status: 'completed',
     paymentMethod: 'upi',
     specialInstructions: 'Extra hot cappuccino please',
+    isSeen: true,
     createdAt: new Date(now - 10 * oneDayMs).toISOString()
   },
   {
@@ -148,6 +168,7 @@ const orders = [
     status: 'completed',
     paymentMethod: 'card',
     specialInstructions: 'Pick up at 4:30 PM',
+    isSeen: true,
     createdAt: new Date(now - 7 * oneDayMs).toISOString()
   },
   {
@@ -168,6 +189,7 @@ const orders = [
     status: 'completed',
     paymentMethod: 'cash',
     specialInstructions: 'Ring doorbell twice',
+    isSeen: true,
     createdAt: new Date(now - 3 * oneDayMs).toISOString()
   },
   {
@@ -188,6 +210,7 @@ const orders = [
     status: 'preparing',
     paymentMethod: 'upi',
     specialInstructions: 'Spicy sizzler sauce',
+    isSeen: false,
     createdAt: new Date(now - 1 * oneDayMs).toISOString()
   },
   {
@@ -207,6 +230,7 @@ const orders = [
     status: 'pending',
     paymentMethod: 'cash',
     specialInstructions: 'Extra napkins please',
+    isSeen: false,
     createdAt: new Date(now - 2 * 3600000).toISOString()
   }
 ];
@@ -218,7 +242,7 @@ const reservations = [
     email: 'vikram.j@example.com',
     phone: '+91 98980 12345',
     date: new Date(now + 1 * oneDayMs).toISOString().split('T')[0],
-    time: '19:30',
+    time: '07:30 PM',
     guests: 4,
     specialRequests: 'Corner table near window for anniversary dinner',
     status: 'confirmed'
@@ -229,7 +253,7 @@ const reservations = [
     email: 'ananya.d@example.com',
     phone: '+91 97234 56789',
     date: new Date(now + 2 * oneDayMs).toISOString().split('T')[0],
-    time: '18:00',
+    time: '06:00 PM',
     guests: 2,
     specialRequests: 'Quiet area suitable for work discussion',
     status: 'pending'
@@ -270,6 +294,7 @@ const seedDatabase = async () => {
 
     console.log('[Seed Script] Clearing existing collections...');
     await Admin.deleteMany({});
+    await Settings.deleteMany({});
     await MenuItem.deleteMany({});
     await Table.deleteMany({});
     await Review.deleteMany({});
@@ -290,6 +315,9 @@ const seedDatabase = async () => {
       role: 'admin'
     });
     await adminUser.save();
+
+    console.log('[Seed Script] Seeding Central Site Settings...');
+    await Settings.create(settingsData);
 
     console.log('[Seed Script] Seeding Menu Items...');
     await MenuItem.insertMany(menuItems);

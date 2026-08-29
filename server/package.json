@@ -6,7 +6,8 @@
   "scripts": {
     "start": "node index.js",
     "dev": "nodemon index.js",
-    "migrate": "node migrations/20260825_001_seed_initial_data.js",
+    "migrate": "node migrations/20260829_002_add_settings_and_indexes.js",
+    "migrate:001": "node migrations/20260825_001_seed_initial_data.js",
     "seed": "node seed/seedData.js"
   },
   "dependencies": {
@@ -15,7 +16,8 @@
     "dotenv": "^16.4.7",
     "express": "^4.21.2",
     "jsonwebtoken": "^9.0.3",
-    "mongoose": "^8.9.5"
+    "mongoose": "^8.9.5",
+    "nodemailer": "^9.0.6"
   },
   "devDependencies": {
     "nodemon": "^3.1.9"
