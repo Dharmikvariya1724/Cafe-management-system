@@ -87,6 +87,53 @@ export function validateTableToken(token: string): TableValidationResult {
 }
 
 /**
+ * Extract table public token from a scanned QR code text string.
+ * Supports:
+ * 1. Full URLs like http://domain.com/table/ck-tbl-xyz
+ * 2. URLs with query parameters like http://domain.com/menu?table=ck-tbl-xyz or ?table_token=ck-tbl-xyz
+ * 3. Direct raw token strings like ck-tbl-xyz
+ */
+export function extractTableTokenFromQr(text: string): string | null {
+  if (!text || typeof text !== 'string') return null
+  const trimmed = text.trim()
+  if (!trimmed) return null
+
+  // 1. Try URL parsing
+  try {
+    const urlString = trimmed.startsWith('http://') || trimmed.startsWith('https://')
+      ? trimmed
+      : `https://${trimmed}`
+    const url = new URL(urlString)
+    
+    // Check path for /table/[token]
+    const tablePathMatch = url.pathname.match(/\/table\/([^\/]+)/i)
+    if (tablePathMatch && tablePathMatch[1]) {
+      return decodeURIComponent(tablePathMatch[1])
+    }
+
+    // Check query params
+    const tokenParam = url.searchParams.get('table_token') || url.searchParams.get('table')
+    if (tokenParam) {
+      return decodeURIComponent(tokenParam)
+    }
+  } catch {
+    // Not a valid URL, proceed to direct string check
+  }
+
+  // 2. Direct string check if it contains /table/
+  if (trimmed.includes('/table/')) {
+    const parts = trimmed.split('/table/')
+    if (parts[1]) {
+      return parts[1].split('?')[0].split('#')[0].trim()
+    }
+  }
+
+  // Return raw string as candidate token
+  return trimmed
+}
+
+
+/**
  * Get public QR code destination URL for a given table token.
  */
 export function getTableQrUrl(publicToken: string): string {

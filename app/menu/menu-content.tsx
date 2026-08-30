@@ -7,15 +7,17 @@ import { MenuCard } from '@/components/MenuCard'
 import { menuItems as defaultItems } from '@/lib/data'
 import { MENU_CATEGORIES } from '@/lib/constants'
 import type { MenuItem, MenuCategory } from '@/lib/types'
-import { Search, X, UtensilsCrossed, ShoppingBag, ArrowRight, QrCode, ShieldAlert } from 'lucide-react'
+import { Search, X, UtensilsCrossed, ShoppingBag, ArrowRight, QrCode, ShieldAlert, Camera } from 'lucide-react'
 import { useCart } from '@/context/CartContext'
 import { validateTableToken } from '@/lib/table-utils'
+import { QrScannerModal } from '@/components/QrScannerModal'
 
 export default function MenuPageContent() {
   const [selectedCategory, setSelectedCategory] = useState<MenuCategory | 'all'>('all')
   const [searchQuery, setSearchQuery] = useState('')
   const [menuItems, setMenuItems] = useState<MenuItem[]>(defaultItems)
   const [currentPage, setCurrentPage] = useState(1)
+  const [isScannerOpen, setIsScannerOpen] = useState(false)
   const { tableContext, setTableContext, totalItems, subtotalPrice, setIsCartOpen } = useCart()
   const itemsPerPage = 9
 
@@ -95,6 +97,14 @@ export default function MenuPageContent() {
                   </p>
                 </div>
               </div>
+
+              <button
+                onClick={() => setIsScannerOpen(true)}
+                className="px-3.5 py-2 bg-primary text-primary-foreground hover:bg-primary/90 text-xs font-bold rounded-xl shadow-sm transition-transform active:scale-95 flex items-center justify-center gap-1.5 shrink-0"
+              >
+                <Camera className="w-4 h-4" />
+                <span>Scan New Table</span>
+              </button>
             </div>
           ) : null}
 
@@ -125,11 +135,22 @@ export default function MenuPageContent() {
                 </p>
               </div>
 
+              {/* OPEN CAMERA BUTTON */}
+              <div className="pt-2">
+                <button
+                  onClick={() => setIsScannerOpen(true)}
+                  className="w-full bg-primary text-primary-foreground font-extrabold py-3.5 px-6 rounded-2xl flex items-center justify-center gap-2.5 shadow-lg hover:bg-primary/90 active:scale-[0.98] transition-all text-base sm:text-lg"
+                >
+                  <Camera className="w-5 h-5 sm:w-6 sm:h-6" />
+                  <span>Open Camera</span>
+                </button>
+              </div>
+
               <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4 text-xs text-amber-900 text-left flex items-start gap-3">
                 <ShieldAlert className="w-5 h-5 text-amber-700 shrink-0 mt-0.5" />
                 <div>
                   <p className="font-bold">Dining at Coffee King?</p>
-                  <p className="mt-0.5">Open your smartphone camera and point it at the QR code stand on your table to unlock table-side ordering.</p>
+                  <p className="mt-0.5">Tap &quot;Open Camera&quot; above to scan your table QR code directly from your browser, or point your phone camera at the QR code stand.</p>
                 </div>
               </div>
             </div>
@@ -293,7 +314,18 @@ export default function MenuPageContent() {
         </div>
       )}
 
+      {/* QR SCANNER MODAL */}
+      <QrScannerModal
+        isOpen={isScannerOpen}
+        onClose={() => setIsScannerOpen(false)}
+        onScanSuccess={(table) => {
+          setTableContext(table)
+          setIsScannerOpen(false)
+        }}
+      />
+
       <Footer />
     </main>
   )
 }
+
